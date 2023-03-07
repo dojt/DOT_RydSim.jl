@@ -77,11 +77,13 @@ using Logging
 using Unitful: μs
 using LinearAlgebra: Hermitian
 using GenericLinearAlgebra
+
 using DOT_NiceMath
 import DOT_NiceMath.NumbersF64
 import DOT_NiceMath.NumbersBig
 
 using DOT_RydSim.Schrödinger
+using DOT_RydSim: μs_t, Rad_per_μs_t, Radperμs_per_μs_t
 
 expi(A::Hermitian) = cis(A)
 
@@ -98,42 +100,46 @@ function test__Schrödinger(Opts::Symbol...)
     )
 
     if :Big ∈ Opts
-        ℝ = NumbersBig.ℝ
-        ℂ = NumbersBig.ℂ
+        ℝ  = NumbersBig.ℝ
+        ℂ  = NumbersBig.ℂ
+        𝒊  = NumbersBig.𝒊
+        𝒊π = NumbersBig.𝒊
     else
-        ℝ = NumbersF64.ℝ
-        ℂ = NumbersF64.ℂ
+        ℝ  = NumbersF64.ℝ
+        ℂ  = NumbersF64.ℂ
+        𝒊  = NumbersBig.𝒊
+        𝒊π = NumbersBig.𝒊
     end
 
 	@testset verbose=true """Sub-module `Schrödinger` $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
 
         @testset "Helpers" begin
-            let N₁ = Schrödinger.N(1,ℂ)
-                @test N₁ isa Hermitian{ℂ,Matrix{ℂ}}
+            let N1 = Schrödinger.N₁(1,ℂ)
+                @test N1 isa Hermitian{ℂ,Matrix{ℂ}}
                 for k=1:2
                     for ℓ=1:2
-                        @test N₁[k,ℓ] isa ℂ
-                        @test N₁[k,ℓ] == N(k,ℓ)
+                        @test N1[k,ℓ] isa ℂ
+                        @test N1[k,ℓ] == N(k,ℓ)
                     end
                 end
             end #^ N(1)
-            let N₂ = Schrödinger.N(2,ℂ)
-                @test N₂ isa Hermitian{ℂ,Matrix{ℂ}}
+            let N2 = Schrödinger.N₁(2,ℂ)
+                @test N2 isa Hermitian{ℂ,Matrix{ℂ}}
                 for k₁=1:2
                     for k₂=1:2
                         k = 1+ 2(k₁-1)+(k₂-1)
                         for ℓ₁=1:2
                             for ℓ₂=1:2
                                 ℓ = 1+ 2(ℓ₁-1)+(ℓ₂-1)
-                                @test N₂[k,ℓ] isa ℂ
-                                @test N₂[k,ℓ] == N(k₁,ℓ₁)⋅δ(k₂,ℓ₂)
+                                @test N2[k,ℓ] isa ℂ
+                                @test N2[k,ℓ] == N(k₁,ℓ₁)⋅δ(k₂,ℓ₂)
                             end
                         end
                     end
                 end
             end #^ N(2)
-            let N₃ = Schrödinger.N(3,ℂ)
-                @test N₃ isa Hermitian{ℂ,Matrix{ℂ}}
+            let N3 = Schrödinger.N₁(3,ℂ)
+                @test N3 isa Hermitian{ℂ,Matrix{ℂ}}
                 for k₁=1:2
                     for k₂=1:2
                         for k₃=1:2
@@ -142,8 +148,8 @@ function test__Schrödinger(Opts::Symbol...)
                                 for ℓ₂=1:2
                                     for ℓ₃=1:2
                                         ℓ = 1+ 4(ℓ₁-1)+2(ℓ₂-1)+(ℓ₃-1)
-                                        @test N₃[k,ℓ] isa ℂ
-                                        @test N₃[k,ℓ] == N(k₁,ℓ₁)⋅δ(k₂,ℓ₂)⋅δ(k₃,ℓ₃)
+                                        @test N3[k,ℓ] isa ℂ
+                                        @test N3[k,ℓ] == N(k₁,ℓ₁)⋅δ(k₂,ℓ₂)⋅δ(k₃,ℓ₃)
                                     end
                                 end
                             end
@@ -153,34 +159,34 @@ function test__Schrödinger(Opts::Symbol...)
             end #^ N(3)
 
             let γ::ℂ  = randn(ComplexF64),
-                X₁    = Schrödinger.X(1,γ)
-                @test X₁ isa Hermitian{ℂ,Matrix{ℂ}}
+                X1    = Schrödinger.X₁(1;γ)
+                @test X1 isa Hermitian{ℂ,Matrix{ℂ}}
                 for k=1:2
                     for ℓ=1:2
-                        @test X₁[k,ℓ] isa ℂ
-                        @test X₁[k,ℓ] == X(k,ℓ;γ)
+                        @test X1[k,ℓ] isa ℂ
+                        @test X1[k,ℓ] == X(k,ℓ;γ)
                     end
                 end
             end #^ X(1)=#
             let γ::ℂ  = randn(ComplexF64),
-                X₂    = Schrödinger.X(2,γ)
-                @test X₂ isa Hermitian{ℂ,Matrix{ℂ}}
+                X2    = Schrödinger.X₁(2;γ)
+                @test X2 isa Hermitian{ℂ,Matrix{ℂ}}
                 for k₁=1:2
                     for k₂=1:2
                         k = 1+ 2(k₁-1)+(k₂-1)
                         for ℓ₁=1:2
                             for ℓ₂=1:2
                                 ℓ = 1+ 2(ℓ₁-1)+(ℓ₂-1)
-                                @test X₂[k,ℓ] isa ℂ
-                                @test X₂[k,ℓ] == X(k₁,ℓ₁;γ)⋅δ(k₂,ℓ₂)
+                                @test X2[k,ℓ] isa ℂ
+                                @test X2[k,ℓ] == X(k₁,ℓ₁;γ)⋅δ(k₂,ℓ₂)
                             end
                         end
                     end
                 end
             end #^ X(2)
             let γ::ℂ  = randn(ComplexF64),
-                X₃ = Schrödinger.X(3,γ)
-                @test X₃ isa Hermitian{ℂ,Matrix{ℂ}}
+                X3 = Schrödinger.X₁(3;γ)
+                @test X3 isa Hermitian{ℂ,Matrix{ℂ}}
                 for k₁=1:2
                     for k₂=1:2
                         for k₃=1:2
@@ -189,8 +195,8 @@ function test__Schrödinger(Opts::Symbol...)
                                 for ℓ₂=1:2
                                     for ℓ₃=1:2
                                         ℓ = 1+ 4(ℓ₁-1)+2(ℓ₂-1)+(ℓ₃-1)
-                                        @test X₃[k,ℓ] isa ℂ
-                                        @test X₃[k,ℓ] == X(k₁,ℓ₁;γ)⋅δ(k₂,ℓ₂)⋅δ(k₃,ℓ₃)
+                                        @test X3[k,ℓ] isa ℂ
+                                        @test X3[k,ℓ] == X(k₁,ℓ₁;γ)⋅δ(k₂,ℓ₂)⋅δ(k₃,ℓ₃)
                                     end
                                 end
                             end
@@ -201,11 +207,11 @@ function test__Schrödinger(Opts::Symbol...)
         end
 
         @testset "timestep!()" begin
-            for N in [2,4,8]
-                ψ₀ = Vector{ℂ}( randn(ComplexF64,N) )
-                X  = let A::Matrix{ℂ}=randn(ComplexF64,N,N) ; (A+A')/2 |> Hermitian end
-                Z  = let A::Matrix{ℂ}=randn(ComplexF64,N,N) ; (A+A')/2 |> Hermitian end
-                R  = let A::Matrix{ℂ}=randn(ComplexF64,N,N) ; (A+A')/2 |> Hermitian end
+            for 𝟐ᴬ in [2,4,8]
+                ψ₀ = Vector{ℂ}( randn(ComplexF64,𝟐ᴬ) )
+                X  = let M::Matrix{ℂ}=randn(ComplexF64,𝟐ᴬ,𝟐ᴬ) ; (M+M')/2 |> Hermitian end
+                N  = let M::Matrix{ℂ}=randn(ComplexF64,𝟐ᴬ,𝟐ᴬ) ; (M+M')/2 |> Hermitian end
+                R  = let M::Matrix{ℂ}=randn(ComplexF64,𝟐ᴬ,𝟐ᴬ) ; (M+M')/2 |> Hermitian end
                 for _iter = 1:3
                     ψ     = copy(ψ₀)
                     Δt::ℝ = rand()
@@ -214,12 +220,34 @@ function test__Schrödinger(Opts::Symbol...)
                     Schrödinger.timestep!(ψ, Δt⋅μs
                                           ;
                                           𝜔=ω/μs, 𝛿=δ/μs,
-                                          X,Z,R)
-                    @test ψ ≈ expi(-Δt⋅(ω⋅X - δ⋅Z + R))⋅ψ₀
+                                          X,N,R)
+                    @test ψ ≈ expi(-Δt⋅(ω⋅X - δ⋅N + R))⋅ψ₀
                 end
             end
         end #^ for N
 
+        @testset verbose=true "schröd!()" begin
+            @testset "Let's just run it!" begin
+                𝟐ᴬ = 8
+                ψ ::Vector{ℂ} = randn(𝟐ᴬ)
+                𝑇 ::μs_t{ℝ}   = 1μs
+                γ ::ℂ         = exp( 𝒊π ⋅ 1.01 )
+                R             = Matrix{ℂ}( randn(𝟐ᴬ,𝟐ᴬ) ) |> Hermitian
+
+                function 𝜔( 𝑡 ::μs_t{REAL} ) ::Rad_per_μs_t{REAL} where{REAL}
+                    0.9876/μs
+                end
+                function 𝛿( 𝑡 ::μs_t{REAL} ) ::Rad_per_μs_t{REAL} where{REAL}
+                    0.6789/μs
+                end
+                @testset "Self-test:" begin
+                    @test 𝜔(1.1μs) == 0.9876/μs
+                    @test 𝛿(1.1μs) == 0.6789/μs
+                end
+
+                @test schröd!(ψ,𝑇,γ ; 𝜔, 𝛿, R) === nothing
+            end
+        end
     end
 end #^ test__Schrödinger()
 end #^ module Test__Schrödinger
