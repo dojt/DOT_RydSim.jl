@@ -59,8 +59,10 @@ export schröd!
 
 import ..μs_t, ..Rad_per_μs_t, ..Radperμs_per_μs_t
 using  ..DOT_NiceMath
+using  ..Fn_Select
 
 using LinearAlgebra: Hermitian, I as Id
+
 
 using Unitful
 using Unitful: μs
@@ -206,10 +208,9 @@ function schröd!(ψ  ::Vector{ℂ},
                  𝜔  ::Function,
                  𝛿  ::Function,
                  R  ::Hermitian{ℂ,𝕄_t},
-                 ε          ::ℝ                    = ℝ(1e-3),
-                 𝑚𝑎𝑥_𝜔_𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℝ} = ℝ(1e50)/μs^2,
-                 𝑚𝑎𝑥_𝛿_𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℝ} = ℝ(1e50)/μs^2  ) ::Nothing  where{ℝ,ℂ,𝕄_t}
+                 ε  ::ℝ                   = ℝ(1e-3) ) ::Nothing   where{ℝ,ℂ,𝕄_t}
 
+    AVG = ..Fn_Select.AVG
 
     A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
     𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
@@ -230,15 +231,15 @@ function schröd!(ψ  ::Vector{ℂ},
             Δ_𝛥𝑡 > 1e-50μs ||
                 throw(Ctrl_Exception("Time-step for Δ is non-positive: $(Δ_𝛥𝑡) ≤ 0μs"))
 
-            𝛺𝑠𝑙𝑒𝑤 = 4ε/Ω_𝛥𝑡^2
-            𝛥𝑠𝑙𝑒𝑤 = 4ε/Δ_𝛥𝑡^2
-
-            if 𝛺𝑠𝑙𝑒𝑤 > 𝑚𝑎𝑥_𝜔_𝑠𝑙𝑒𝑤
-                throw(Ctrl_Exception("Slew rate for Ω exceeded: $(𝛺𝑠𝑙𝑒𝑤) > $(𝑚𝑎𝑥_𝜔_𝑠𝑙𝑒𝑤))"))
-            end
-            if 𝛥𝑠𝑙𝑒𝑤 > 𝑚𝑎𝑥_𝛿_𝑠𝑙𝑒𝑤
-                throw(Ctrl_Exception("Slew rate for Ω exceeded: $(𝛥𝑠𝑙𝑒𝑤) > $(𝑚𝑎𝑥_𝛿_𝑠𝑙𝑒𝑤))"))
-            end
+            # 𝛺𝑠𝑙𝑒𝑤 = 4ε/Ω_𝛥𝑡^2
+            # 𝛥𝑠𝑙𝑒𝑤 = 4ε/Δ_𝛥𝑡^2
+            #
+            # if 𝛺𝑠𝑙𝑒𝑤 > 𝑚𝑎𝑥_𝜔_𝑠𝑙𝑒𝑤
+            #     throw(Ctrl_Exception("Slew rate for Ω exceeded: $(𝛺𝑠𝑙𝑒𝑤) > $(𝑚𝑎𝑥_𝜔_𝑠𝑙𝑒𝑤))"))
+            # end
+            # if 𝛥𝑠𝑙𝑒𝑤 > 𝑚𝑎𝑥_𝛿_𝑠𝑙𝑒𝑤
+            #     throw(Ctrl_Exception("Slew rate for Ω exceeded: $(𝛥𝑠𝑙𝑒𝑤) > $(𝑚𝑎𝑥_𝛿_𝑠𝑙𝑒𝑤))"))
+            # end
         end
 
         𝛥𝑡 = min( Ω.𝛥𝑡, Δ.𝛥𝑡 )
@@ -252,9 +253,7 @@ function schröd!(ψ  ::Vector{ℂ},
 
         𝑡 += 𝛥𝑡
 
-    end
-
-
+    end #^ while 𝑡
     nothing
 end #^ schröd!()
 
