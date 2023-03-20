@@ -47,30 +47,30 @@ import Unitful
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.1. Unit types
 
-const μs_t{              ℝ<:Real } =                                                                # 1→ `μs_t`
-    Quantity{ℝ, 𝐓,
+const μs_t{              𝕂<:Real } =                                                                # 1→ `μs_t`
+    Quantity{𝕂, 𝐓,
              FreeUnits{ (Unit{:Second,𝐓}(-6, 1//1),),
                         𝐓,
                         nothing }
              }
 
-const Rad_per_μs_t{      ℝ<:Real } =                                                                # 1→ `Rad_per_μs_t`
-    Quantity{ℝ, 𝐓^(-1//1),
+const Rad_per_μs_t{      𝕂<:Real } =                                                                # 1→ `Rad_per_μs_t`
+    Quantity{𝕂, 𝐓^(-1//1),
              FreeUnits{ (Unit{:Second,𝐓}(-6,-1//1),),
                         𝐓^(-1//1),
                         nothing }
              }
 
-const Radperμs_per_μs_t{ ℝ<:Real } =                                                                # 1→ `Rad_per_μs_t`
-    Quantity{ℝ, 𝐓^(-2//1),
+const Radperμs_per_μs_t{ 𝕂<:Real } =                                                                # 1→ `Rad_per_μs_t`
+    Quantity{𝕂, 𝐓^(-2//1),
              FreeUnits{ (Unit{:Second,𝐓}(-6,-2//1),),
                         𝐓^(-2//1),
                         nothing }
              }
 
 
-const GHz_t{             ℝ<:Real } =                                                                # 1→ `Hz_t`
-    Quantity{ℝ, 𝐓^(-1//1),
+const GHz_t{             𝕂<:Real } =                                                                # 1→ `Hz_t`
+    Quantity{𝕂, 𝐓^(-1//1),
              FreeUnits{ (Unit{:Hertz,𝐓^(-1//1)}(9,1//1),),
                         𝐓^(-1//1),
                         nothing }
@@ -106,9 +106,26 @@ include("Schrödinger.mod.jl")
 
 using DOT_NiceMath.NumbersF64: ℤ, ℚ
 
-continue here: Copy round fn from Pluto notebook
+function δround(x ::Quantity{𝕂₁,T₁,F₁} ; δ ::Quantity{ℚ,T₂,F₂}) ::Quantity{ℚ,T₂,F₂}    where{𝕂₁, T₁,F₁, T₂,F₂}
+    δ⋅rationalize(ℤ,floor(x/δ +1//2))
+end
 
-......................................................................................
+# continue here: Copy round fn from Pluto notebook
+
+# _ratdiv(num,den) = rat( NoUnits( div( num, den , RoundNearest) ) )
+# _round(x::Frequency ; δ::Frequency) = MHz(δ)⋅_ratdiv( MHz(x),MHz(δ) )
+# _round(x::Time      ; δ::Time     ) =  μs(δ)⋅_ratdiv(  μs(x), μs(δ) )
+# _round(x::Length    ; δ::Length   ) =  μm(δ)⋅_ratdiv(  μm(x), μm(δ) )
+
+# round_Ω(dev::HW_Descr,  𝛺::Frequency) = _round(𝛺;δ=dev.𝛺ᵣₑₛ)
+# round_Δ(dev::HW_Descr,  𝛥::Frequency) = _round(𝛥;δ=dev.𝛥ᵣₑₛ)
+# round_t(dev::HW_Descr,  𝑡::Time     ) = _round(𝑡;δ=dev.𝑡ᵣₑₛ)
+
+# round_xy(dev::HW_Descr, 𝑧::Length   ) = _round(𝑧;δ=dev.lattice.posᵣₑₛ)
+
+# φπ(dev::HW_Descr) = dev.𝜑ᵣₑₛ⋅_ratdiv(π,dev.𝜑ᵣₑₛ)
+
+
 
 
 
@@ -141,22 +158,22 @@ function make_ctrl_fn__Ω_bangbang( 𝑡₀       ::μs_t{ℚ},
                 #   wait before pulse
             𝑡₀, #1              ⌝
                 #   ramp up     |
-            ,   #2              |
+            1//1,   #2              |
                 #   plateau     |  pulse, incl. ramp-down
-            ,   #3              |
+            1//1,   #3              |
                 #   ramp down   |
-            𝑡₁  #4              ⌟
+            𝑡₁,  #4              ⌟
                 #   wait after pulse
             𝑇   #5
         )
 
 
     function
-    𝜔(::Type{Fn_Select.AVG},  𝑡 ::μs_t{𝐑} ;  𝛥𝑡 ::μs_t{𝐑}) ::𝐑   where{𝐑<:Real}
+    𝜔(::Type{Fn_Select.AVG},  𝑡 ::μs_t{𝕂} ;  𝛥𝑡 ::μs_t{𝕂}) ::𝕂   where{𝕂<:Real}
         blah
     end
     function
-    𝜔(::Type{Fn_Select.Step}, 𝑡 ::μs_t{𝐑} ;  ε  ::μs_t{𝐑}) ::𝐑   where{𝐑<:Real}
+    𝜔(::Type{Fn_Select.STEP}, 𝑡 ::μs_t{𝕂} ;  ε  ::μs_t{𝕂}) ::𝕂   where{𝕂<:Real}
         blubb
     end
 

@@ -210,7 +210,7 @@ function schröd!(ψ  ::Vector{ℂ},
                  R  ::Hermitian{ℂ,𝕄_t},
                  ε  ::ℝ                   = ℝ(1e-3) ) ::Nothing   where{ℝ,ℂ,𝕄_t}
 
-    AVG = ..Fn_Select.AVG
+    AVG = Fn_Select.AVG
 
     A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
     𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
