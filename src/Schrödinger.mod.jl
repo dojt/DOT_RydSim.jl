@@ -202,27 +202,24 @@ with
 in rad/μs.
 """
 function schröd!(ψ  ::Vector{ℂ},
-                 𝑇  ::μs_t{ℝ},
-                 γ  ::ℂ
+                 𝑇  ::μs_t{ℝ}
                  ;
-                 𝜔  ::Function,
-                 𝛿  ::Function,
+                 Ω  ::P₁,
+                 Δ  ::P₂,
                  R  ::Hermitian{ℂ,𝕄_t},
-                 ε  ::ℝ                   = ℝ(1e-3) ) ::Nothing   where{ℝ,ℂ,𝕄_t}
-
-    AVG = Fn_Select.AVG
+                 ε  ::ℝ                   = ℝ(1e-3) ) ::Nothing   where{ℝ,ℂ,𝕄_t, P₁<:Pulse, P₂<:Pulse}
 
     A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
     𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
-    X    = X₁(A;γ)                        ; @assert size(X) == size(N)  "Crazy bug #2"
+    X    = X₁(A;phase(P₁)                 ; @assert size(X) == size(N)  "Crazy bug #2"
 
     𝑡 ::μs_t{ℝ} = 0μs
 
     while 𝑡  <  𝑇 - 1e-50μs
 
-        Ω_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝜔(STEP, 𝑡;ε) )
-        Δ_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝛿(STEP, 𝑡;ε) )
+        Ω_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠𝑡𝑒𝑝(Ω, 𝑡 ; ε )
+        Δ_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠𝑡𝑒𝑝(Δ, 𝑡 ; ε )
 
         let 𝛺𝑠𝑙𝑒𝑤, 𝛥𝑠𝑙𝑒𝑤
             Ω_𝛥𝑡 > 1e-50μs ||
@@ -242,10 +239,10 @@ function schröd!(ψ  ::Vector{ℂ},
             # end
         end
 
-        𝛥𝑡 = min( Ω.𝛥𝑡, Δ.𝛥𝑡 )
+        𝛥𝑡 = min( Ω_𝛥𝑡, Δ_𝛥𝑡 )
 
-        Ω_𝜇 ::Rad_per_μs_t{ℝ} = 𝜔(AVG, 𝑡; 𝛥𝑡)
-        Δ_𝜇 ::Rad_per_μs_t{ℝ} = 𝛿(AVG, 𝑡; 𝛥𝑡)
+        Ω_𝜇 ::Rad_per_μs_t{ℝ} = 𝑎𝑣𝑔(Ω, 𝑡; 𝛥𝑡)
+        Δ_𝜇 ::Rad_per_μs_t{ℝ} = 𝑎𝑣𝑔(Δ, 𝑡; 𝛥𝑡)
 
 
         timestep!(ψ, 𝛥𝑡 ; 𝜔=Ω_𝜇, 𝛿=Δ_𝜇,

@@ -79,24 +79,38 @@ const GHz_t{             𝕂<:Real } =                                         
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.2. Types: Fn_Select
 
+@doc raw"""
+Abstract type `Pulse`
+
+This abstract type establishes an interface for querying properties of pulses.
+
+With ``f`` denoting the pulse shape (as a function of time in μs and with values in radians), syntax
+and semantics of the interface are as follows (note the italics function names, in line with the
+convention *unitful iff italics*).
+
+Methdos for the functions `𝑎𝑣𝑔()`, `𝑠𝑡𝑒𝑝()`, `phase()`, `plot!()` must be defined:
+
+  * `𝑎𝑣𝑔(p::Pulse,  𝑡 ::μs_t ; 𝛥𝑡 ::μs_t) ::Rad_per_μs_t` — returns
+
+    ```math
+    \mu_{t,Δ\!t} := \tfrac{1}{\Delta\!t} \int_t^{t+\Delta\!t} f(s) \,ds
+    ```
+
+  * `𝑠𝑡𝑒𝑝(p::Pulse, 𝑡 ::μs_t ; ε ::ℝ) ::μs_t` — returns the largest ``\Delta\!t``
+    such that:
+
+    ```math
+    \int_t^{t+\Delta!t} |f(s) - \mu_{t,\Delta!t} |\,ds \le \varepsilon
+    ```
+
+    with ``\mu_{.,.}`` as above.  The `ε` is not italics as radians is, strictly speaking, not a
+    unit.
+
+  * `phase(p::Pulse) ::ℝ` — returns the phase, which must be time-independent.
+
+  * `plot!(plotobject, p::Pulse)` — plots the pulse into the given plot object.
 """
-Module `Fn_Select`
-
-This sub-module of `DOT_RydSim` provides the dummy types
-* `STEP` and
-* `AVG`
-to select the method for the pulse-shape functions.  Used in the Function Maker functions below.
-
-"""
-module Fn_Select
-    export STEP, AVG
-
-    abstract type Function_Selection end
-
-    struct STEP <: Function_Selection end
-    struct AVG  <: Function_Selection end
-
-end
+abstract type Pulse end
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.3. Sub-module Schrödinger
 
@@ -104,78 +118,116 @@ include("Schrödinger.mod.jl")
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.4. Helper: Rounding
 
-using DOT_NiceMath.NumbersF64: ℤ, ℚ
+function δround( x ::𝕂₁
+                 ;
+                 δ ::Rational{ℤ}                    ) ::Rational{ℤ}                    where{𝕂₁, ℤ}
 
-function δround(x ::Quantity{𝕂₁,T₁,F₁} ; δ ::Quantity{ℚ,T₂,F₂}) ::Quantity{ℚ,T₂,F₂}    where{𝕂₁, T₁,F₁, T₂,F₂}
-    δ⋅rationalize(ℤ,floor(x/δ +1//2))
+    δ ⋅ rationalize(ℤ,
+                    floor(x/δ +1//2)  )
 end
 
-# continue here: Copy round fn from Pluto notebook
+function δround( x ::Quantity{𝕂₁,T₁,F₁}
+                 ;
+                 δ ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::Quantity{Rational{ℤ},T₂,F₂}    where{𝕂₁,T₁,F₁, ℤ,T₂,F₂}
 
+    δ ⋅ rationalize(ℤ,
+                    floor(x/δ +1//2)  )
+end
+
+# Do I need any of these:
+#
 # _ratdiv(num,den) = rat( NoUnits( div( num, den , RoundNearest) ) )
 # _round(x::Frequency ; δ::Frequency) = MHz(δ)⋅_ratdiv( MHz(x),MHz(δ) )
 # _round(x::Time      ; δ::Time     ) =  μs(δ)⋅_ratdiv(  μs(x), μs(δ) )
 # _round(x::Length    ; δ::Length   ) =  μm(δ)⋅_ratdiv(  μm(x), μm(δ) )
-
+#
 # round_Ω(dev::HW_Descr,  𝛺::Frequency) = _round(𝛺;δ=dev.𝛺ᵣₑₛ)
 # round_Δ(dev::HW_Descr,  𝛥::Frequency) = _round(𝛥;δ=dev.𝛥ᵣₑₛ)
 # round_t(dev::HW_Descr,  𝑡::Time     ) = _round(𝑡;δ=dev.𝑡ᵣₑₛ)
-
+#
 # round_xy(dev::HW_Descr, 𝑧::Length   ) = _round(𝑧;δ=dev.lattice.posᵣₑₛ)
-
+#
 # φπ(dev::HW_Descr) = dev.𝜑ᵣₑₛ⋅_ratdiv(π,dev.𝜑ᵣₑₛ)
 
 
-
-
-
 # ***************************************************************************************************************************
-# ——————————————————————————————————————————————————————————————————————————————————————————————————— 2. Function maker
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 2. Pulse constructors
 
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.2. Ω_BangBang
 
-function make_ctrl_fn__Ω_bangbang( 𝑡₀       ::μs_t{ℚ},
-                                   𝑡₁       ::μs_t{ℚ},
-                                   𝑇        ::μs_t{ℚ},
-                                   𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
-                                   ;
-                                   𝛺ₘₐₓ       ::Rad_per_μs_t{ℚ},
-                                   𝛺ᵣₑₛ       ::Rad_per_μs_t{ℚ},
-                                   𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ},
 
-                                   φᵣₑₛ       ::ℚ,
+@doc raw"""
+* wait before pulse
+* event 1
+* ramp up
+* event 2
+* plateau
+* event 3
+* ramp down
+* event 4
+* wait after pulse
+* end of time
+"""
+struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse
+    γ      ::Complex{ℝ}
+    𝑒𝑣𝑒𝑛𝑡𝑠 ::NTuple{5,ℚ}
+end
 
-                                   𝑡ₘₐₓ       ::μs_t{ℚ},
-                                   𝑡ᵣₑₛ       ::μs_t{ℚ},
-                                   𝛥𝑡ₘᵢₙ      ::μs_t{ℚ}                  ) ::Function
+function Pulse__Ω_BangBang{ℚ,ℝ}( 𝑡₀       ::μs_t{ℚ},
+                                 𝑡₁       ::μs_t{ℚ},
+                                 𝑇        ::μs_t{ℚ},
+                                 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
+                                 ;
+                                 𝛺ₘₐₓ       ::Rad_per_μs_t{ℚ},
+                                 𝛺ᵣₑₛ       ::Rad_per_μs_t{ℚ},
+                                 𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ},
+
+                                 φᵣₑₛ       ::ℚ,
+
+                                 𝑡ₘₐₓ       ::μs_t{ℚ},
+                                 𝑡ᵣₑₛ       ::μs_t{ℚ},
+                                 𝛥𝑡ₘᵢₙ      ::μs_t{ℚ}                ) ::Pulse__Ω_BangBang{ℚ,ℝ}
+
+    ℂ = Complex{ℝ}
 
     @assert -𝛺ₘₐₓ < 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 < +𝛺ₘₐₓ
     @assert 0μs ≤ 𝑡₀ < 𝑡₁ ≤ 𝑇
+
+    γ ::ℂ = cis( δround(ℝ(π);δ=ϕᵣₑₛ) )
 
     𝑒𝑣𝑒𝑛𝑡𝑠 ::NTuple{5,ℚ} =
         (
                 #   wait before pulse
             𝑡₀, #1              ⌝
                 #   ramp up     |
-            1//1,   #2              |
+            1//1,#2             |
                 #   plateau     |  pulse, incl. ramp-down
-            1//1,   #3              |
+            1//1,#3             |
                 #   ramp down   |
-            𝑡₁,  #4              ⌟
+            𝑡₁, #4              ⌟
                 #   wait after pulse
             𝑇   #5
         )
 
 
-    function
-    𝜔(::Type{Fn_Select.AVG},  𝑡 ::μs_t{𝕂} ;  𝛥𝑡 ::μs_t{𝕂}) ::𝕂   where{𝕂<:Real}
-        blah
-    end
-    function
-    𝜔(::Type{Fn_Select.STEP}, 𝑡 ::μs_t{𝕂} ;  ε  ::μs_t{𝕂}) ::𝕂   where{𝕂<:Real}
-        blubb
-    end
+    return Pulse__Ω_BangBang(γ,𝑒𝑣𝑒𝑛𝑡𝑠)
+end
+
+(  phase(Ω::Pulse__Ω_BangBang{ℚ,ℂ}) ::ℂ  ) where{ℚ,ℂ}        = Ω.γ
+
+function 𝑎𝑣𝑔(Ω::Pulse__Ω_BangBang{ℚ,ℂ},  𝑡 ::μs_t{𝕂} ;  𝛥𝑡 ::μs_t{𝕂}) ::𝕂   where{ℚ,ℂ,𝕂}
+    
+end
+
+function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℂ}, 𝑡 ::μs_t{𝕂} ;  ε  ::μs_t{𝕂}) ::𝕂   where{ℚ,ℂ,𝕂}
+    blubb
+end
+
+
+#function plot!(plothere, Ω::Pulse__Ω_BangBang ; kwargs...)
+#    Plots.plot!(plothere, [ 𝑡 for 𝑡 ∈ Ω.𝑒𝑣𝑒𝑛𝑡𝑠 ], ; kwargs...)
+#end
 
 
 #     for near-square:
