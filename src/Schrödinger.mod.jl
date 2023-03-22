@@ -58,8 +58,8 @@ export schröd!
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1. Imports & Helpers
 
 import ..μs_t, ..Rad_per_μs_t, ..Radperμs_per_μs_t
+import ..Pulse, ..phase, ..𝑎𝑣𝑔, ..𝑠𝑡𝑒𝑝
 using  ..DOT_NiceMath
-using  ..Fn_Select
 
 using LinearAlgebra: Hermitian, I as Id
 
@@ -212,14 +212,14 @@ function schröd!(ψ  ::Vector{ℂ},
     A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
     𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
-    X    = X₁(A;phase(P₁)                 ; @assert size(X) == size(N)  "Crazy bug #2"
+    X    = X₁(A;γ=phase(Ω))               ; @assert size(X) == size(N)  "Crazy bug #2"
 
     𝑡 ::μs_t{ℝ} = 0μs
 
     while 𝑡  <  𝑇 - 1e-50μs
 
-        Ω_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠𝑡𝑒𝑝(Ω, 𝑡 ; ε )
-        Δ_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠𝑡𝑒𝑝(Δ, 𝑡 ; ε )
+        Ω_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠𝑡𝑒𝑝(Ω, 𝑡 ; ε ) )
+        Δ_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠𝑡𝑒𝑝(Δ, 𝑡 ; ε ) )
 
         let 𝛺𝑠𝑙𝑒𝑤, 𝛥𝑠𝑙𝑒𝑤
             Ω_𝛥𝑡 > 1e-50μs ||
