@@ -132,7 +132,7 @@ line with the convention *unitful iff italics*).
 
 Methdos for the functions `𝑎𝑣𝑔()`, `𝑠𝑡𝑒𝑝()`, `phase()`, `plotpulse()` must be defined:
 
-  * `𝑎𝑣𝑔(p::Pulse,  𝑡 ::μs_t ; 𝛥𝑡 ::μs_t) ::Radperμs_per_μs_t` — returns
+  * `𝑎𝑣𝑔(p::Pulse,  𝑡 ::μs_t ; 𝛥𝑡 ::μs_t) ::Rad_per_μs_t` — returns
 
     ```math
     \mu_{t,Δ\!t} := \tfrac{1}{\Delta\!t} \int_t^{t+\Delta\!t} f(s) \,ds
@@ -267,28 +267,48 @@ function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,�
     return Ω.γ
 end
 
+# Fix for bug in Unitful
+import Base.:≤
+(   ( x::μs_t{𝕂₁} ≤ y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}       = x.val ≤ y.val
+
 #
 # This function is to demonstrate the pulse shape data, and maybe for plotting or whatnot.
 #
-function (Ω::Pulse__Ω_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t   where{ℚ,ℝ,𝕂}                     #(2.2) callable Pulse__Ω_BangBang
+function (Ω::Pulse__Ω_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{𝕂}   where{ℚ,ℝ,𝕂}                  #(2.2) callable Pulse__Ω_BangBang
+
     (;𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ, 𝛺) = Ω
 
     β = (2^30+1)//2^30
     if            𝑡 < 0μs            throw(DomainError(𝑡,"Time cannot be negative."))
     elseif  0μs   ≤ 𝑡 ≤ 𝑒𝑣[1]        return 𝕂(0)/μs
-    elseif  𝑒𝑣[1] ≤ 𝑡 ≤ 𝑒𝑣[2]        return ( 𝑒𝑣[2]-𝑒𝑣[1] )⋅𝑟ꜛ
+    elseif  𝑒𝑣[1] ≤ 𝑡 ≤ 𝑒𝑣[2]        return ( 𝑡-𝑒𝑣[1] )⋅𝑟ꜛ
     elseif  𝑒𝑣[2] ≤ 𝑡 ≤ 𝑒𝑣[3]        return 𝛺
-    elseif  𝑒𝑣[3] ≤ 𝑡 ≤ 𝑒𝑣[4]        return 𝛺 - ( 𝑒𝑣[4]-𝑒𝑣[3] )⋅𝑟ꜜ
+    elseif  𝑒𝑣[3] ≤ 𝑡 ≤ 𝑒𝑣[4]        return ( 𝑒𝑣[4]-𝑡 )⋅𝑟ꜜ
     elseif  𝑒𝑣[4] ≤ 𝑡 ≤ 𝑒𝑣[5]⋅β      return 𝕂(0)/μs
     else                             throw(DomainError(𝑡,"Time exceeds upper bound, 𝑇=$(𝑒𝑣[5])."))
     end
 end #^ callable Pulse__Ω_BangBang
 
-function 𝑎𝑣𝑔(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                                                             #(2.2) 𝑎𝑣𝑔() Pulse__Ω_BangBang
+function 𝑎𝑣𝑔(Ω ::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑎𝑣𝑔() Pulse__Ω_BangBang
              𝑡 ::μs_t{𝕂}
              ;
-             𝛥𝑡 ::μs_t{𝕂}               ) ::Radperμs_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
-    blah
+             𝛥𝑡 ::μs_t{𝕂}                    ) ::Rad_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
+
+    (;𝑒𝑣) = Ω
+    𝑡ᵉⁿᵈ  = 𝑡+𝛥𝑡
+    sum   = 𝕂(0)
+    for j = 1 : length(𝑒𝑣)-1
+        if 𝑡 < 𝑒𝑣[j+1] && 𝑒𝑣[j] < 𝑡ᵉⁿᵈ
+            𝑠ⱼ = max(𝑒𝑣[j], 𝑡)
+            𝑡ⱼ = min(𝑡ᵉⁿᵈ, 𝑒𝑣[j+1])
+            if 𝑠ⱼ < 𝑡ⱼ
+                𝜔ₛ = Ω(𝑠ⱼ)
+                𝜔ₜ = Ω(𝑡ⱼ)
+                sum += (𝑡ⱼ-𝑠ⱼ)⋅( 𝜔ₛ + (𝜔ₜ-𝜔ₛ)/2 )
+            end
+        end
+    end
+    return sum/𝛥𝑡
 end #^ 𝑎𝑣𝑔()
 
 function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑠𝑡𝑒𝑝() Pulse__Ω_BangBang
