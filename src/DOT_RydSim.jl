@@ -83,6 +83,16 @@ const GHz_t{             𝕂<:Real } =                                         
 
 
 
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.3. Helper: Unitful bug fix
+# Fix for bug in Unitful
+import Base.==
+import Base.:≤
+import Base.:<
+(   ( x::μs_t{𝕂₁} == y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val == y.val
+(   ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val ≤  y.val
+(   ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val <  y.val
+
+
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.4. Helper: Rounding
 
 function δround( x ::𝕂₁
@@ -195,8 +205,8 @@ struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse                                     
     𝑟ꜜ   ::Radperμs_per_μs_t{ℚ}         # down-ramp rate
 end
 
-function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                                                 #(2.2) constructor Pulse__Ω_BangBang
-                                𝑡₁       ::μs_t{ℚ},
+function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},                                                 #(2.2) constructor Pulse__Ω_BangBang
+                                𝑡ᵒᶠᶠ     ::μs_t{ℚ},
                                 𝑇        ::μs_t{ℚ},
                                 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
                                 ;
@@ -211,18 +221,26 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                
                                 𝛥𝑡ₘᵢₙ      ::μs_t{ℚ}                ) ::
                                                           Pulse__Ω_BangBang{ℚ,ℝ}   where{ℚ,ℝ}
 
-    @warn "𝑡ᵣₑₛ checking not yet implemented!"
-    @warn "𝛥𝑡ₘᵢₙ checking not yet implemented!"
-    @warn "𝛺ᵣₑₛ checking not yet implemented!"
-
-
     ℂ = Complex{ℝ}
 
-    @assert -𝛺ₘₐₓ ≤ 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ≤ +𝛺ₘₐₓ
-    @assert 0μs ≤ 𝑡₀ < 𝑡₁ ≤ 𝑇
+    @assert 
+    @assert 0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇
 
-    𝛺ₘₐₓ > 0/μs         || throw(ArgumentError("𝛺ₘₐₓ must be positive."))
-    𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 > 0/μs^2 || throw(ArgumentError("Max slew rate 𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 must be positive."))
+    𝛺ₘₐₓ > 0/μs              || throw(ArgumentError("𝛺ₘₐₓ must be positive."))
+    𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 > 0/μs^2      || throw(ArgumentError("Max slew rate 𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 must \
+                                                     be positive."))
+    𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 % 𝛺ᵣₑₛ == 0/μs  || throw(ArgumentError("𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ($(𝛺_𝑡𝑎𝑟𝑔𝑒𝑡)) is not integer \
+                                                     multiple of 𝛺ᵣₑₛ ($(𝛺ᵣₑₛ))."))
+    -𝛺ₘₐₓ ≤ 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ≤ +𝛺ₘₐₓ || throw(ArgumentError("𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ($(𝛺_𝑡𝑎𝑟𝑔𝑒𝑡)) is not in \
+                                                     range [-𝛺ₘₐₓ,+𝛺ₘₐₓ] ($(𝛺ₘₐₓ))."))
+    𝑡ᵒⁿ + 𝛥𝑡ₘᵢₙ ≤ 𝑡ᵒᶠᶠ       || throw(ArgumentError("Gap 𝑡ᵒⁿ → 𝑡ᵒᶠᶠ ($(𝑡ᵒᶠᶠ-𝑡ᵒⁿ)) \
+                                                     smaller than 𝛥𝑡ₘᵢₙ ($(𝛥𝑡ₘᵢₙ))."))
+    𝑡ᵒⁿ ≤ 0μs || 𝑡ᵒⁿ > 𝛥𝑡ₘᵢₙ || throw(ArgumentError("Gap 0μs → 𝑡ᵒⁿ ($(𝑡ᵒⁿ)) \
+                                                     smaller than 𝛥𝑡ₘᵢₙ ($(𝛥𝑡ₘᵢₙ))."))
+    𝑡ᵒⁿ %  𝑡ᵣₑₛ == 0μs       || throw(ArgumentError("𝑡ᵒⁿ ($(𝑡ᵒⁿ)) is not integer multiple \
+                                                     of 𝑡ᵣₑₛ ($(𝑡ᵣₑₛ)$."))
+    𝑡ᵒᶠᶠ % 𝑡ᵣₑₛ == 0μs       || throw(ArgumentError("𝑡ᵒᶠᶠ ($(𝑡ᵒᶠᶠ)) is not integer multiple \
+                                                     of 𝑡ᵣₑₛ ($(𝑡ᵣₑₛ))."))
 
     γ::ℂ =
         if 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 < 0/μs
@@ -285,14 +303,6 @@ function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,�
 
     return Ω.γ
 end
-
-# Fix for bug in Unitful
-import Base.==
-import Base.:≤
-import Base.:<
-(   ( x::μs_t{𝕂₁} == y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val == y.val
-(   ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val ≤  y.val
-(   ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val <  y.val
 
 #
 # This function is to demonstrate the pulse shape data, and maybe for plotting or whatnot.
