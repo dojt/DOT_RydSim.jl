@@ -30,7 +30,9 @@ Sub-module names are not exported.
 * `Schrödinger` — Simulation of quantum evolution
 """
 module DOT_RydSim
-export schröd!, Pulse__Ω_BangBang
+export schröd!
+export Pulse__Ω_BangBang
+export plotpulse
 
 
 # ***************************************************************************************************************************
@@ -99,22 +101,6 @@ function δround( x ::Quantity{𝕂₁,T₁,F₁}
                     floor(x/δ +1//2)  )
 end
 
-# Do I need any of these:
-#
-# _ratdiv(num,den) = rat( NoUnits( div( num, den , RoundNearest) ) )
-# _round(x::Frequency ; δ::Frequency) = MHz(δ)⋅_ratdiv( MHz(x),MHz(δ) )
-# _round(x::Time      ; δ::Time     ) =  μs(δ)⋅_ratdiv(  μs(x), μs(δ) )
-# _round(x::Length    ; δ::Length   ) =  μm(δ)⋅_ratdiv(  μm(x), μm(δ) )
-#
-# round_Ω(dev::HW_Descr,  𝛺::Frequency) = _round(𝛺;δ=dev.𝛺ᵣₑₛ)
-# round_Δ(dev::HW_Descr,  𝛥::Frequency) = _round(𝛥;δ=dev.𝛥ᵣₑₛ)
-# round_t(dev::HW_Descr,  𝑡::Time     ) = _round(𝑡;δ=dev.𝑡ᵣₑₛ)
-#
-# round_xy(dev::HW_Descr, 𝑧::Length   ) = _round(𝑧;δ=dev.lattice.posᵣₑₛ)
-#
-# φπ(dev::HW_Descr) = dev.𝜑ᵣₑₛ⋅_ratdiv(π,dev.𝜑ᵣₑₛ)
-
-
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2. Pulse constructors
 
@@ -138,14 +124,18 @@ Methdos for the functions `𝑎𝑣𝑔()`, `𝑠𝑡𝑒𝑝()`, `phase()`, `pl
     \mu_{t,Δ\!t} := \tfrac{1}{\Delta\!t} \int_t^{t+\Delta\!t} f(s) \,ds
     ```
 
-  * `𝑠𝑡𝑒𝑝(p::Pulse, 𝑡 ::μs_t ; ε ::Rad_per_μs_t) ::μs_t` — returns the largest ``\Delta\!t``
+  * `𝑠𝑡𝑒𝑝(p::Pulse, 𝑡 ::μs_t ; ε ::ℝ) ::μs_t` — returns the largest ``\Delta\!t``
     such that:
 
     ```math
     \int_t^{t+\Delta!t} |f(s) - \mu_{t,\Delta!t} |\,ds \le \varepsilon
     ```
 
-    with ``\mu_{.,.}`` as above.
+    with ``\mu_{.,.}`` as above.  (`ε` is `\varepsilon`.)
+
+    !!! note "Note."
+        To simplify implementation, returning a *lower bound* on that maximum is considerd conformant
+        with the interface.
 
   * `phase(p::Pulse) ::ℝ` — returns the phase, which must be time-independent.
 
@@ -173,6 +163,29 @@ Pulse__Ω_BangBang{ℚ,ℝ}( 𝑡₀       ::μs_t{ℚ},
                         𝑡ᵣₑₛ       ::μs_t{ℚ},
                         𝛥𝑡ₘᵢₙ      ::μs_t{ℚ}                ) ::Pulse__Ω_BangBang{ℚ,ℝ}
 ```
+
+## Implementation
+
+### The struct `Pulse__Ω_BangBang{ℚ,ℝ}`
+
+#### Semantics of `𝑒𝑣`
+The tuple `𝑒𝑣` holds times of events between phases:
+  * 0μs   event: beginning of time
+  * —     phase: wait before pulse
+  * `𝑒𝑣[1]`
+  * —     phase: ramp up
+  * `𝑒𝑣[2]`
+  * —     phase: plateau
+  * `𝑒𝑣[3]`
+  * —     phase: ramp down
+  * `𝑒𝑣[4]`
+  * —     phase: wait after pulse
+  * `𝑒𝑣[5]` event: end of time
+
+Implied in this: Entries are increasing with index.
+
+#### Docs of other fields:
+See source!
 """
 struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse                                                              #(2.2) struct Pulse__Ω_BangBang
     γ    ::Complex{ℝ}                   # phase
@@ -182,7 +195,7 @@ struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse                                     
     𝑟ꜜ   ::Radperμs_per_μs_t{ℚ}         # down-ramp rate
 end
 
-function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                                                #(2.2) constructor Pulse__Ω_BangBang
+function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                                                 #(2.2) constructor Pulse__Ω_BangBang
                                 𝑡₁       ::μs_t{ℚ},
                                 𝑇        ::μs_t{ℚ},
                                 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
@@ -198,13 +211,18 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                
                                 𝛥𝑡ₘᵢₙ      ::μs_t{ℚ}                ) ::
                                                           Pulse__Ω_BangBang{ℚ,ℝ}   where{ℚ,ℝ}
 
-    @warn "𝑡ᵣₑₛ not yet implemented!"
-    @warn "𝛥𝑡ₘᵢₙ not yet implemented!"
+    @warn "𝑡ᵣₑₛ checking not yet implemented!"
+    @warn "𝛥𝑡ₘᵢₙ checking not yet implemented!"
+    @warn "𝛺ᵣₑₛ checking not yet implemented!"
+
 
     ℂ = Complex{ℝ}
 
     @assert -𝛺ₘₐₓ ≤ 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ≤ +𝛺ₘₐₓ
     @assert 0μs ≤ 𝑡₀ < 𝑡₁ ≤ 𝑇
+
+    𝛺ₘₐₓ > 0/μs         || throw(ArgumentError("𝛺ₘₐₓ must be positive."))
+    𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 > 0/μs^2 || throw(ArgumentError("Max slew rate 𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤 must be positive."))
 
     γ::ℂ =
         if 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 < 0/μs
@@ -214,6 +232,7 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                
             ℂ(0)
         end
 
+
     𝑟ꜛ     = 𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤
     𝑟ꜜ     = 𝛺_𝑚𝑎𝑥_𝑠𝑙𝑒𝑤
     𝑡₀₋ₜₐᵣ = 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡/ 𝑟ꜛ
@@ -221,31 +240,31 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡₀       ::μs_t{ℚ},                
 
     𝑒𝑣 ::NTuple{5, μs_t{ℚ} } = if   𝑡₀+𝑡₀₋ₜₐᵣ  ≤  𝑡₁-𝑡ₜₐᵣ₋₀
         (
-                #   wait before pulse
-            𝑡₀, #1              ⌝
-                #   ramp up     |
-            𝑡₀+𝑡₀₋ₜₐᵣ,#         |
-                #   plateau     |  pulse, incl. ramp-down
-            𝑡₁-𝑡ₜₐᵣ₋₀,#         |
-                #   ramp down   |
-            𝑡₁, #4              ⌟
-                #   wait after pulse
-            𝑇   #5
+            # wait before pulse
+            𝑡₀,
+            # ramp up
+            𝑡₀+𝑡₀₋ₜₐᵣ,
+            # plateau
+            𝑡₁-𝑡ₜₐᵣ₋₀,
+            #   ramp down
+            𝑡₁,
+            # wait after pulse
+            𝑇
         )
     else let 𝛥𝑡 = 𝑡₁ - 𝑡₀
         # Solve  𝑠⋅𝑟ꜛ = (𝛥𝑡-𝑠)⋅𝑟ꜜ   for 𝑠:
         𝑠 = 𝑟ꜜ/( 𝑟ꜛ+𝑟ꜜ )⋅𝛥𝑡
         (
-                #   wait before pulse
-            𝑡₀, #1              ⌝
-                #   ramp up     |
-            𝑡₀+𝑠,#2             |
-                #   plateau     |  pulse, incl. ramp-down
-            𝑡₁-(𝛥𝑡-𝑠),#         |
-                #   ramp down   |
-            𝑡₁, #4              ⌟
-                #   wait after pulse
-            𝑇   #5
+            # wait before pulse
+            𝑡₀,
+            # ramp up
+            𝑡₀+𝑠,
+            # plateau is empty!!
+            𝑡₁-(𝛥𝑡-𝑠),
+            #   ramp down
+            𝑡₁,
+            # wait after pulse
+            𝑇
         )
     end end
 
@@ -268,8 +287,12 @@ function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,�
 end
 
 # Fix for bug in Unitful
+import Base.==
 import Base.:≤
-(   ( x::μs_t{𝕂₁} ≤ y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}       = x.val ≤ y.val
+import Base.:<
+(   ( x::μs_t{𝕂₁} == y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val == y.val
+(   ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val ≤  y.val
+(   ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val <  y.val
 
 #
 # This function is to demonstrate the pulse shape data, and maybe for plotting or whatnot.
@@ -292,7 +315,7 @@ end #^ callable Pulse__Ω_BangBang
 function 𝑎𝑣𝑔(Ω ::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑎𝑣𝑔() Pulse__Ω_BangBang
              𝑡 ::μs_t{𝕂}
              ;
-             𝛥𝑡 ::μs_t{𝕂}                    ) ::Rad_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
+             𝛥𝑡 ::μs_t{𝕂}               ) ::Rad_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
 
     (;𝑒𝑣) = Ω
     𝑡ᵉⁿᵈ  = 𝑡+𝛥𝑡
@@ -314,41 +337,37 @@ end #^ 𝑎𝑣𝑔()
 function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑠𝑡𝑒𝑝() Pulse__Ω_BangBang
               𝑡 ::μs_t{𝕂}
               ;
-              ε  ::μs_t{𝕂}              ) ::𝕂   where{ℚ,ℝ,𝕂}
-    blubb
+              ε  ::𝕂                    ) ::μs_t{𝕂}   where{ℚ,ℝ,𝕂}
+
+    (;𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ) = Ω
+
+    # Lazy: We compare not to the average but to the value
+
+    β = (2^30+1)//2^30
+    if            𝑡 < 0μs            throw(DomainError(𝑡,"Time cannot be negative."))
+    elseif  0μs   ≤ 𝑡 < 𝑒𝑣[1]        return                 𝑒𝑣[1]-𝑡
+    elseif  𝑒𝑣[1] ≤ 𝑡 < 𝑒𝑣[2]        return min( √(2ε/𝑟ꜛ) , 𝑒𝑣[2]-𝑡 )
+    elseif  𝑒𝑣[2] ≤ 𝑡 < 𝑒𝑣[3]        return                 𝑒𝑣[3]-𝑡
+    elseif  𝑒𝑣[3] ≤ 𝑡 < 𝑒𝑣[4]        return min( √(2ε/𝑟ꜜ) , 𝑒𝑣[4]-𝑡 )
+    elseif  𝑒𝑣[4] ≤ 𝑡 ≤ 𝑒𝑣[5]⋅β      return max(            𝑒𝑣[5]-𝑡 , 0μs)
+    else                             throw(DomainError(𝑡,"Time exceeds upper bound, 𝑇=$(𝑒𝑣[5])."))
+    end
+
+end #^ 𝑠𝑡𝑒𝑝()
+
+
+function plotpulse(Ω::Pulse__Ω_BangBang) ::NamedTuple                                               #(2.2) plotpulse() Pulse__Ω_BangBang
+
+    𝑋 = Iterators.flatten( [ [(0//1)μs], (𝑡 for 𝑡 ∈ Ω.𝑒𝑣) ] )
+
+    return (  x⃗ = collect(𝑋),
+              y⃗ = [ Ω(𝑥) for 𝑥 ∈ 𝑋 ]  )
 end
-
-
-#function plot!(plothere, Ω::Pulse__Ω_BangBang ; kwargs...)
-#    Plots.plot!(plothere, [ 𝑡 for 𝑡 ∈ Ω.𝑒𝑣 ], ; kwargs...)
-#end
-
-
-#     for near-square:
-#
-#     phases/events
-# t[0]=0
-#         wait_before
-# 𝑡[1]
-#         ramp_up
-# 𝑡[2]
-#         hold
-# 𝑡[3]
-#         ramp_down
-# 𝑡[4]
-#         wait_after
-# 𝑡[5]=𝑇
-#
-#
-#     return: 𝜔 ::Function, γ::ℂ
-
-
 
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3. Sub-module Schrödinger
 
 include("Schrödinger.mod.jl")
-
 
 end # module DOT_RydSim
 # EOF
