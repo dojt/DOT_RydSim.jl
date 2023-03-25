@@ -68,9 +68,74 @@ function test__units(option_set::Symbol...)
 end #^ test__units()
 
 
-# ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.1: Schrödinger
+
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.2: Pulses
+module Test__Pulses
+export test__pulses
+
+using Test
+using Logging
+using Unitful: μs
+using LinearAlgebra: Hermitian
+using GenericLinearAlgebra
+using Unitful
+
+using DOT_NiceMath
+import DOT_NiceMath.NumbersF64
+import DOT_NiceMath.NumbersBig
+
+using DOT_RydSim: δround
+
+function test__pulses(Opts::Symbol...)
+    ALL_OPTS = [ :Big ]
+    Opts ⊆ ALL_OPTS  ||  throw(
+        ArgumentError("Options not recognized: $(setdiff(Opts,ALL_OPTS))")
+    )
+
+    if :Big ∈ Opts
+        ℝ  = NumbersBig.ℝ
+        ℂ  = NumbersBig.ℂ
+        𝒊  = NumbersBig.𝒊
+        𝒊π = NumbersBig.𝒊
+        ℤ  = NumbersBig.ℤ
+        ℚ  = NumbersBig.ℚ
+    else
+        ℝ  = NumbersF64.ℝ
+        ℂ  = NumbersF64.ℂ
+        𝒊  = NumbersF64.𝒊
+        𝒊π = NumbersF64.𝒊
+        ℤ  = NumbersF64.ℤ
+        ℚ  = NumbersF64.ℚ
+    end
+
+	@testset verbose=true """Test pulses $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
+        @testset verbose=true "Helpers" begin
+            @testset "δround()" begin
+                for i = 1:100
+                    δ = ℚ(  rationalize(Int16,abs(randn()))  )
+                    x = rand(-3:+3)⋅δ
+                    x̃ = x + (rand()-0.5)⋅(1-1e-5)⋅δ
+                    @test δround(x̃;δ) == x
+                end
+                for i = 1:100
+                    𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
+                    𝑥 = rand(-3:+3)⋅𝛿
+                    𝑥̃ = 𝑥 + (rand()-0.5)⋅(1-1e-5)⋅𝛿
+                    @test δround(𝑥̃;𝛿) == 𝑥
+                end
+            end
+        end #^ testset "Helpers"
+        @testset "(more stuff)" begin
+            @test false skip=true
+        end
+    end
+end #^ test__pulses()
+end #^ module Test__Pulses
+using .Test__Pulses: test__pulses
+
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.3: Schrödinger
 module Test__Schrödinger
-export test__Schrödinger
+export test__secrets, test__schröd!
 
 using Test
 using Logging
@@ -93,7 +158,7 @@ X(x,y;γ) = if     x==1 && y==2    γ
            elseif x==2 && y==1    γ'
            else                   zero(typeof(γ))  end
 
-function test__Schrödinger(Opts::Symbol...)
+function test__secrets(Opts::Symbol...)
     ALL_OPTS = [ :Big ]
     Opts ⊆ ALL_OPTS  ||  throw(
         ArgumentError("Options not recognized: $(setdiff(Opts,ALL_OPTS))")
@@ -107,12 +172,11 @@ function test__Schrödinger(Opts::Symbol...)
     else
         ℝ  = NumbersF64.ℝ
         ℂ  = NumbersF64.ℂ
-        𝒊  = NumbersBig.𝒊
-        𝒊π = NumbersBig.𝒊
+        𝒊  = NumbersF64.𝒊
+        𝒊π = NumbersF64.𝒊
     end
 
-	@testset verbose=true """Sub-module `Schrödinger` $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
-
+	@testset verbose=true """Sub-module `Schrödinger`: Secrets $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
         @testset "Helpers" begin
             let N1 = Schrödinger.N₁(1,ℂ)
                 @test N1 isa Hermitian{ℂ,Matrix{ℂ}}
@@ -204,7 +268,7 @@ function test__Schrödinger(Opts::Symbol...)
                     end
                 end
             end #^ X(3)
-        end
+        end #^ testset "Helpers"
 
         @testset "timestep!()" begin
             for 𝟐ᴬ in [2,4,8]
@@ -224,43 +288,57 @@ function test__Schrödinger(Opts::Symbol...)
                     @test ψ ≈ expi(-Δt⋅(ω⋅X - δ⋅N + R))⋅ψ₀
                 end
             end
-        end #^ for N
+        end #^ tstset "timestep!()"
+    end #^ function-testset
+end #^ test__secrets()
+
+function test__schröd!(Opts::Symbol...)
+    ALL_OPTS = [ :Big ]
+    Opts ⊆ ALL_OPTS  ||  throw(
+        ArgumentError("Options not recognized: $(setdiff(Opts,ALL_OPTS))")
+    )
+
+    if :Big ∈ Opts
+        ℝ  = NumbersBig.ℝ
+        ℂ  = NumbersBig.ℂ
+        𝒊  = NumbersBig.𝒊
+        𝒊π = NumbersBig.𝒊
+    else
+        ℝ  = NumbersF64.ℝ
+        ℂ  = NumbersF64.ℂ
+        𝒊  = NumbersF64.𝒊
+        𝒊π = NumbersF64.𝒊
+    end
+
+	@testset verbose=true """Sub-module `Schrödinger`: schröd!() $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
 
         @testset verbose=true "schröd!()" begin
             @testset "Let's just run it!" begin
                 𝟐ᴬ = 8
                 ψ ::Vector{ℂ} = randn(𝟐ᴬ)
                 𝑇 ::μs_t{ℝ}   = 1μs
-                γ ::ℂ         = exp( 𝒊π ⋅ 1.01 )
-                R             = Matrix{ℂ}( randn(𝟐ᴬ,𝟐ᴬ) ) |> Hermitian
 
-                function 𝜔( 𝑡 ::μs_t{REAL} ) ::Rad_per_μs_t{REAL} where{REAL}
-                    0.9876/μs
-                end
-                function 𝛿( 𝑡 ::μs_t{REAL} ) ::Rad_per_μs_t{REAL} where{REAL}
-                    0.6789/μs
-                end
-                @testset "Self-test:" begin
-                    @test 𝜔(1.1μs) == 0.9876/μs
-                    @test 𝛿(1.1μs) == 0.6789/μs
-                end
-
-                @test schröd!(ψ,𝑇,γ ; 𝜔, 𝛿, R) === nothing
+                @test schröd!(ψ,𝑇,γ ; 𝜔, 𝛿, R) === nothing    skip=true
             end
-        end
-    end
-end #^ test__Schrödinger()
+        end #^ testset "schröd!()"
+    end #^ function-testset
+end #^ test__schröd!
+
 end #^ module Test__Schrödinger
-using .Test__Schrödinger
+import .Test__Schrödinger
+
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— X. Main
 
 @testset verbose=true "Testing DOT_RydSim.jl" begin
     test__units()
-    test__Schrödinger()
-    test__Schrödinger(:Big)
-    @testset "A broken test:" begin
-        @test fasle skip=true
-    end
+    test__pulses(:Big)
+    Test__Schrödinger.test__secrets(:Big)
+    Test__Schrödinger.test__schröd!(:Big)
 end
+
+#  @testset "A broken test:" begin
+#      @test DOODELDIDOO skip=true
+#  end
 
 #runtests.jl
 #EOF

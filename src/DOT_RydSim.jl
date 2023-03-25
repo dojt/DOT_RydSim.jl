@@ -32,6 +32,7 @@ Sub-module names are not exported.
 module DOT_RydSim
 export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
+export δround
 export Pulse__Ω_BangBang
 
 
@@ -96,21 +97,26 @@ import Base.:<
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.4. Helper: Rounding
 
 @doc raw"""
-Function `δround(x ; δ::ℚ) ::ℚ`
+Functions
+```julia
+     δround(x ::         𝕂 ; δ ::         ℚ     ) ::         ℚ
+     δround(𝑥 ::Quantity{𝕂 ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+```
 
 Rounds `x` to the closest multiple of `δ`.
 """
 function δround( x ::𝕂₁
                  ;
-                 δ ::Rational{ℤ}                    ) ::Rational{ℤ}                    where{𝕂₁,ℤ}
+                 δ ::Rational{ℤ}                    ) ::Rational{ℤ}     where{𝕂₁,ℤ}
 
     δ ⋅ rationalize(ℤ,
                     floor(x/δ +1//2)  )
 end
 
-function δround( 𝑥 ::Quantity{𝕂₁,T₁,F₁}
+function δround( 𝑥 ::Quantity{𝕂,T₁,F₁}
                  ;
-                 𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::Quantity{Rational{ℤ},T₂,F₂}    where{𝕂₁,T₁,F₁, ℤ,T₂,F₂}
+                 𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
+                                         Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
 
     𝛿 ⋅ rationalize(ℤ,
                     floor(𝑥/𝛿 +1//2)  )
@@ -137,11 +143,16 @@ Methdos for the functions [`𝑎𝑣𝑔`](@ref)`()`, [`𝑠𝑡𝑒𝑝`](@ref)
 abstract type Pulse end
 
 @doc raw"""
-Function `phase(p::Pulse) ::ℝ`
+Function `phase(p::Pulse) ::ℂ`
 
 Returns the phase (which is be time-independent).
+
+Only Ω (Rabi frequency) pulse shapes need / allow a phase: The Rabi frequency technically
+cannot be negative, but a phase of ``e^{i\pi}`` allows "virtually" negative values.  Detuning
+(i.e., Δ) pulse shapes don't have a phase, as, unlike the Rabi frequency, the detuning can be
+negative.
 """
-function phase(::Pulse) end
+function phase end
 
 @doc raw"""
 Function `𝑎𝑣𝑔(p::Pulse,  𝑡 ::μs_t ; 𝛥𝑡 ::μs_t) ::Rad_per_μs_t`
@@ -152,7 +163,7 @@ Returns
 \mu_{t,Δ\!t} := \tfrac{1}{\Delta\!t} \int_t^{t+\Delta\!t} f(s) \,ds
 ```
 """
-function 𝑎𝑣𝑔(::Pulse, ::μs_t ; 𝛥𝑡 ::μs_t) ::Rad_per_μs_t end
+function 𝑎𝑣𝑔 end
 
 @doc raw"""
 `𝑠𝑡𝑒𝑝(p::Pulse, 𝑡 ::μs_t ; ε ::ℝ) ::μs_t` — returns the largest ``\Delta\!t``
@@ -168,40 +179,47 @@ with ``\mu_{.,.}`` as in the docs for [`𝑎𝑣𝑔`](@ref)`()`.  (`ε` is `\va
     To simplify implementation, returning a (non-trivial) *lower bound* on that maximum is
     considerd conformant with the interface.
 """
-function 𝑠𝑡𝑒𝑝(::Pulse, ::μs_t ; ε        ) ::μs_t end
+function 𝑠𝑡𝑒𝑝 end
 
 @doc raw"""
 Function `plotpulse(p::Pulse) :: @NamedTuple{x⃗::Vector,y⃗::Vector}`
 
 Returns x- and y-data for plotting.
 """
-function plotpulse(::Pulse) ::NamedTuple end
+function plotpulse end
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.2. Δ_BangBang Pulse
 
 @doc raw"""
 Struct `Pulse__Δ_BangBang` `<:` `Pulse`
 
+!!! note "Note!"
+
+    Detuning (i.e., "Δ") pulse shapes don't have a phase: The phase is used only for fixing the
+    sign of the pulse shape, but unlike the Rabi frequency, the detuning can be negative.
+
 ## Constructor
 ```julia
-Pulse__Δ_BangBang{ℚ,ℝ}( 𝑡ᵒⁿ      ::μs_t{ℚ},
-                        𝑡ᵒᶠᶠ     ::μs_t{ℚ},
-                        𝑇        ::μs_t{ℚ},
-                        𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
-                        ;
-                        𝛥ₘₐₓ           ::Rad_per_μs_t{ℚ},
-                        𝛥ᵣₑₛ           ::Rad_per_μs_t{ℚ},
-                        𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ},
-                        𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ} = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
-                        φᵣₑₛ           ::ℚ,
-                        𝑡ₘₐₓ           ::μs_t{ℚ},
-                        𝑡ᵣₑₛ           ::μs_t{ℚ},
-                        𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}               ) ::Pulse__Δ_BangBang{ℚ,ℝ}
+Pulse__Δ_BangBang{ℚ}( 𝑡ᵒⁿ      ::μs_t{ℚ},
+                      𝑡ᵒᶠᶠ     ::μs_t{ℚ},
+                      𝑇        ::μs_t{ℚ},
+                      𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
+                      ;
+                      𝛥ₘₐₓ           ::Rad_per_μs_t{ℚ},
+                      𝛥ᵣₑₛ           ::Rad_per_μs_t{ℚ},
+                      𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ},
+                      𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ} = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
+
+                      𝑡ₘₐₓ           ::μs_t{ℚ},
+                      𝑡ᵣₑₛ           ::μs_t{ℚ},
+                      𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}               ) ::Pulse__Δ_BangBang{ℚ}
 ```
+
+Note: No ℝ type-parameter (because there's no phase).
 
 ## Implementation
 
-### The struct `Pulse__Δ_BangBang{ℚ,ℝ}`
+### The struct `Pulse__Δ_BangBang{ℚ}`
 
 #### Semantics of `𝑒𝑣`
 The tuple `𝑒𝑣` holds times of events between phases:
@@ -402,6 +420,11 @@ end
 
 @doc raw"""
 Struct `Pulse__Ω_BangBang` `<:` `Pulse`
+
+!!! note "Note!"
+    The Rabi frequency technically cannot be negative, but we allow negative values in the
+    constructors of the Ω-pulse shapes.  The sign is then hiden in the phase.  (Only reason for
+    the phase, indeed.)  The additional type-parameter ℝ is needed to encode the phase.
 
 ## Constructor
 ```julia
