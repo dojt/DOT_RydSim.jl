@@ -179,6 +179,228 @@ function plotpulse(::Pulse) ::NamedTuple end
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.2. Δ_BangBang Pulse
 
+@doc raw"""
+Struct `Pulse__Δ_BangBang` `<:` `Pulse`
+
+## Constructor
+```julia
+Pulse__Δ_BangBang{ℚ,ℝ}( 𝑡ᵒⁿ      ::μs_t{ℚ},
+                        𝑡ᵒᶠᶠ     ::μs_t{ℚ},
+                        𝑇        ::μs_t{ℚ},
+                        𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
+                        ;
+                        𝛥ₘₐₓ           ::Rad_per_μs_t{ℚ},
+                        𝛥ᵣₑₛ           ::Rad_per_μs_t{ℚ},
+                        𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ},
+                        𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ} = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
+                        φᵣₑₛ           ::ℚ,
+                        𝑡ₘₐₓ           ::μs_t{ℚ},
+                        𝑡ᵣₑₛ           ::μs_t{ℚ},
+                        𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}               ) ::Pulse__Δ_BangBang{ℚ,ℝ}
+```
+
+## Implementation
+
+### The struct `Pulse__Δ_BangBang{ℚ,ℝ}`
+
+#### Semantics of `𝑒𝑣`
+The tuple `𝑒𝑣` holds times of events between phases:
+  * 0μs   event: beginning of time
+  * —     phase: wait before pulse
+  * `𝑒𝑣[1]`
+  * —     phase: ramp up
+  * `𝑒𝑣[2]`
+  * —     phase: plateau
+  * `𝑒𝑣[3]`
+  * —     phase: ramp down
+  * `𝑒𝑣[4]`
+  * —     phase: wait after pulse
+  * `𝑒𝑣[5]` event: end of time
+
+Implied in this: Entries are increasing with index.
+
+#### Docs of other fields:
+See source!
+"""
+struct Pulse__Δ_BangBang{ℚ,ℝ} <: Pulse                                                              #(2.2) struct Pulse__Δ_BangBang
+    𝑒𝑣   ::NTuple{5, μs_t{ℚ} }          # events
+    𝑟ꜛ   ::Radperμs_per_μs_t{ℚ}         # up-ramp rate
+    𝛥    ::Rad_per_μs_t{ℚ}              # top plateau value
+    𝑟ꜜ   ::Radperμs_per_μs_t{ℚ}         # down-ramp rate
+end
+
+function Pulse__Δ_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},                                                 #(2.2) constructor Pulse__Δ_BangBang
+                                𝑡ᵒᶠᶠ     ::μs_t{ℚ},
+                                𝑇        ::μs_t{ℚ},
+                                𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
+                                ;
+                                𝛥ₘₐₓ           ::Rad_per_μs_t{ℚ},
+                                𝛥ᵣₑₛ           ::Rad_per_μs_t{ℚ},
+                                𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ},
+                                𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ}
+                                                 = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
+                                φᵣₑₛ           ::ℚ,                     # "\varphi"
+
+                                𝑡ₘₐₓ           ::μs_t{ℚ},
+                                𝑡ᵣₑₛ           ::μs_t{ℚ},
+                                𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}                ) ::
+                                                          Pulse__Δ_BangBang{ℚ,ℝ}   where{ℚ,ℝ}
+
+    ℂ = Complex{ℝ}
+
+    @assert 0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇
+
+    𝛥ₘₐₓ > 0/μs              || throw(ArgumentError("𝛥ₘₐₓ must be positive."))
+    𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 > 0/μs^2    || throw(ArgumentError("Max slew rate 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 must \
+                                                     be positive."))
+    𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 > 0/μs^2  || throw(ArgumentError("Max slew rate 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 must \
+                                                     be positive."))
+    𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 % 𝛥ᵣₑₛ == 0/μs  || throw(ArgumentError("𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ($(𝛥_𝑡𝑎𝑟𝑔𝑒𝑡)) is not integer \
+                                                     multiple of 𝛥ᵣₑₛ ($(𝛥ᵣₑₛ))."))
+    -𝛥ₘₐₓ ≤ 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ≤ +𝛥ₘₐₓ || throw(ArgumentError("𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ($(𝛥_𝑡𝑎𝑟𝑔𝑒𝑡)) is not in \
+                                                     range [-𝛥ₘₐₓ,+𝛥ₘₐₓ] ($(𝛥ₘₐₓ))."))
+    𝑡ᵒⁿ + 𝛥𝑡ₘᵢₙ ≤ 𝑡ᵒᶠᶠ       || throw(ArgumentError("Gap 𝑡ᵒⁿ → 𝑡ᵒᶠᶠ ($(𝑡ᵒᶠᶠ-𝑡ᵒⁿ)) \
+                                                     smaller than 𝛥𝑡ₘᵢₙ ($(𝛥𝑡ₘᵢₙ))."))
+    𝑡ᵒⁿ ≤ 0μs || 𝑡ᵒⁿ > 𝛥𝑡ₘᵢₙ || throw(ArgumentError("Gap 0μs → 𝑡ᵒⁿ ($(𝑡ᵒⁿ)) \
+                                                     smaller than 𝛥𝑡ₘᵢₙ ($(𝛥𝑡ₘᵢₙ))."))
+    𝑡ᵒⁿ %  𝑡ᵣₑₛ == 0μs       || throw(ArgumentError("𝑡ᵒⁿ ($(𝑡ᵒⁿ)) is not integer multiple \
+                                                     of 𝑡ᵣₑₛ ($(𝑡ᵣₑₛ)."))
+    𝑡ᵒᶠᶠ % 𝑡ᵣₑₛ == 0μs       || throw(ArgumentError("𝑡ᵒᶠᶠ ($(𝑡ᵒᶠᶠ)) is not integer multiple \
+                                                     of 𝑡ᵣₑₛ ($(𝑡ᵣₑₛ))."))
+
+    γ::ℂ =
+        if 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 < 0/μs
+            𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 = -𝛥_𝑡𝑎𝑟𝑔𝑒𝑡           # Warning! Change sign of 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡  𝗪𝗮𝗿𝗻𝗶𝗻𝗴!
+            cis( δround(ℝ(π);δ=φᵣₑₛ) )
+        else
+            ℂ(0)
+        end
+
+
+    𝑟ꜛ        = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤
+    𝑟ꜜ        = 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+    𝑡ᵒⁿ⁻ᵗᵃʳ   = 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡/ 𝑟ꜛ               # time from "on" to reaching target value
+    𝑡ᵖᵉᵃᵏ     = min(𝑡ᵒⁿ⁻ᵗᵃʳ , 𝑡ᵒᶠᶠ-𝑡ᵒⁿ)    # time from "on" to peak value
+    𝛥ᵖᵉᵃᵏ     = 𝑡ᵖᵉᵃᵏ⋅𝑟ꜛ                   # peak value
+    𝑡ᵖᵉᵃᵏ⁻⁰   = 𝛥ᵖᵉᵃᵏ / 𝑟ꜜ                 # time from peak value to zero
+
+
+    𝑒𝑣 ::NTuple{5, μs_t{ℚ} } =
+        (
+            # wait before pulse
+            𝑡ᵒⁿ,
+            # ramp up
+            𝑡ᵒⁿ + 𝑡ᵖᵉᵃᵏ,
+            # plateau
+            𝑡ᵒᶠᶠ,
+            #   ramp down
+            𝑡ᵒᶠᶠ + 𝑡ᵖᵉᵃᵏ⁻⁰,
+            # wait after pulse
+            𝑇
+        )
+
+    𝑒𝑣[4] ≤ 𝑒𝑣[5]    || throw(ArgumentError("𝛥_BangBang pulse shape doesn't fit: gap \
+                                             between 𝑡ᵒᶠᶠ=$(𝑡ᵒᶠᶠ) and 𝑇=$(𝑇) too small \
+                                             for 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ($(𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤))."))
+
+    return Pulse__Δ_BangBang(γ, 𝑒𝑣, 𝑟ꜛ, 𝛥ᵖᵉᵃᵏ, 𝑟ꜜ)
+end
+
+function _check(Δ::Pulse__Δ_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                                               #(2.2) _check() Pulse__Δ_BangBang
+    @assert 0μs ≤ Δ.𝑒𝑣[1]        "Pulse__Δ_BangBang: \
+                                  𝑒𝑣=$(Δ.𝑒𝑣) has negative time. This is a bug."
+    @assert issorted(Δ.𝑒𝑣)       "Pulse__Δ_BangBang: \
+                                  𝑒𝑣=$(Δ.𝑒𝑣) not sorted. This is a bug."
+    @assert sign(Δ.𝛥) ==
+        sign(Δ.𝑟ꜛ) == sign(Δ.𝑟ꜜ) "Pulse__Δ_BangBang: \
+                                  sign mismatch between 𝛥,𝑟ꜛ,𝑟ꜜ. This is a bug."
+end
+
+function phase(Δ::Pulse__Δ_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,ℝ}                              #(2.2) phase() Pulse__Δ_BangBang
+    # let's take the opportunity to run some checks:
+    _check(Δ)
+
+    return Δ.γ
+end
+
+#
+# This function is to demonstrate the pulse shape data, and maybe for plotting or whatnot.
+#
+function (Δ::Pulse__Δ_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{𝕂}   where{ℚ,ℝ,𝕂}                  #(2.2) callable Pulse__Δ_BangBang
+
+    (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ, 𝛥) = Δ
+
+    β = (2^30+1)//2^30
+    if            𝑡 < 0μs            throw(DomainError(𝑡,"Time cannot be negative."))
+    elseif  0μs   ≤ 𝑡 ≤ 𝑒𝑣[1]        return 𝕂(0)/μs
+    elseif  𝑒𝑣[1] < 𝑡 < 𝑒𝑣[2]        return ( 𝑡-𝑒𝑣[1] )⋅𝑟ꜛ
+    elseif  𝑒𝑣[2] ≤ 𝑡 ≤ 𝑒𝑣[3]        return 𝛥
+    elseif  𝑒𝑣[3] < 𝑡 < 𝑒𝑣[4]        return ( 𝑒𝑣[4]-𝑡 )⋅𝑟ꜜ
+    elseif  𝑒𝑣[4] ≤ 𝑡 ≤ 𝑒𝑣[5]⋅β      return 𝕂(0)/μs
+    elseif  𝑒𝑣[5]⋅β < 𝑡              throw(DomainError(𝑡,"Time exceeds upper bound, \
+                                                          𝑇=$(𝑒𝑣[5])."))
+    else                             @assert false "It's the Unitful-comparison's bug!"
+    end
+end #^ callable Pulse__Δ_BangBang
+
+function 𝑎𝑣𝑔(Δ ::Pulse__Δ_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑎𝑣𝑔() Pulse__Δ_BangBang
+             𝑡 ::μs_t{𝕂}
+             ;
+             𝛥𝑡 ::μs_t{𝕂}               ) ::Rad_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
+
+    (;𝑒𝑣) = Δ
+    𝑡ᵉⁿᵈ  = 𝑡+𝛥𝑡
+    sum   = 𝕂(0)
+    for j = 1 : length(𝑒𝑣)-1
+        if 𝑡 < 𝑒𝑣[j+1] && 𝑒𝑣[j] < 𝑡ᵉⁿᵈ
+            𝑠ⱼ = max(𝑒𝑣[j], 𝑡)
+            𝑡ⱼ = min(𝑡ᵉⁿᵈ, 𝑒𝑣[j+1])
+            if 𝑠ⱼ < 𝑡ⱼ
+                𝛿ₛ = Δ(𝑠ⱼ)
+                𝛿ₜ = Δ(𝑡ⱼ)
+                sum += (𝑡ⱼ-𝑠ⱼ)⋅( 𝛿ₛ + 𝛿ₜ )/2
+            end
+        end
+    end
+    return sum/𝛥𝑡
+end #^ 𝑎𝑣𝑔()
+
+function 𝑠𝑡𝑒𝑝(Δ::Pulse__Δ_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑠𝑡𝑒𝑝() Pulse__Δ_BangBang
+              𝑡 ::μs_t{𝕂}
+              ;
+              ε ::𝕂                     ) ::μs_t{𝕂}   where{ℚ,ℝ,𝕂}
+
+    (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ) = Δ
+
+    ∫_μ(𝑟) = √( 4ε / abs(𝑟) )
+
+    β = (2^30+1)//2^30
+    if            𝑡 < 0μs            throw(DomainError(𝑡,"Time cannot be negative."))
+    elseif  0μs   ≤ 𝑡 < 𝑒𝑣[1]        return                𝑒𝑣[1]-𝑡
+    elseif  𝑒𝑣[1] ≤ 𝑡 < 𝑒𝑣[2]        return min( ∫_μ(𝑟ꜛ) , 𝑒𝑣[2]-𝑡 )
+    elseif  𝑒𝑣[2] ≤ 𝑡 < 𝑒𝑣[3]        return                𝑒𝑣[3]-𝑡
+    elseif  𝑒𝑣[3] ≤ 𝑡 < 𝑒𝑣[4]        return min( ∫_μ(𝑟ꜜ) , 𝑒𝑣[4]-𝑡 )
+    elseif  𝑒𝑣[4] ≤ 𝑡 ≤ 𝑒𝑣[5]⋅β      return max(           𝑒𝑣[5]-𝑡 , 0μs)
+    elseif  𝑒𝑣[5]⋅β < 𝑡              throw(DomainError(𝑡,"Time exceeds upper bound, \
+                                                          𝑇=$(𝑒𝑣[5])."))
+    else                             @assert false "It's the Unitful-comparison's bug!"
+    end
+
+end #^ 𝑠𝑡𝑒𝑝()
+
+
+function plotpulse(Δ::Pulse__Δ_BangBang) ::NamedTuple                                               #(2.2) plotpulse() Pulse__Δ_BangBang
+    (; 𝑒𝑣, 𝛥) = Δ
+    x⃗ = [ (0//1)μs  ,  𝑒𝑣[1]     , 𝑒𝑣[2] , 𝑒𝑣[3] , 𝑒𝑣[4]     ,  𝑒𝑣[5]     ]
+    y⃗ = [ (0//1)/μs ,  (0//1)/μs , 𝛥     , 𝛥     , (0//1)/μs ,  (0//1)/μs ]
+    return (x⃗=x⃗, y⃗=y⃗)
+    # 𝙇𝙖𝙯𝙮 𝙫𝙚𝙧𝙨𝙞𝙤𝙣 (𝙙𝙚𝙛𝙚𝙧𝙧𝙞𝙣𝙜 𝙩𝙤 𝙘𝙖𝙡𝙡𝙖𝙗𝙡𝙚):
+    #    𝑋 = Iterators.flatten( [ [(0//1)μs], (𝑡 for 𝑡 ∈ Δ.𝑒𝑣) ] )
+    #    return (  x⃗ = collect(𝑋),
+    #              y⃗ = [ Δ(𝑥) for 𝑥 ∈ 𝑋 ]  )
+end
+
+
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.3. Ω_BangBang Pulse
 
@@ -311,12 +533,15 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
 end
 
 function _check(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                                               #(2.3) _check() Pulse__Ω_BangBang
-    0μs ≤ Ω.𝑒𝑣[1]    ||  throw(ErrorException("Pulse__Ω_BangBang: \
-                                               𝑒𝑣=$(Ω.𝑒𝑣) has negative time. This is a bug."))
-    issorted(Ω.𝑒𝑣)   ||  throw(ErrorException("Pulse__Ω_BangBang: \
-                                               𝑒𝑣=$(Ω.𝑒𝑣) not sorted. This is a bug."))y
-    Ω.𝛺 ≥ 0/μs       ||  throw(ErrorException("Pulse__Ω_BangBang: \
-                                               negative 𝛺==$(Ω.𝛺). This is a bug."))
+    @assert 0μs ≤ Ω.𝑒𝑣[1]          "Pulse__Ω_BangBang: \
+                                    𝑒𝑣=$(Ω.𝑒𝑣) has negative time. This is a bug."
+    @assert issorted(Ω.𝑒𝑣)         "Pulse__Ω_BangBang: \
+                                    𝑒𝑣=$(Ω.𝑒𝑣) not sorted. This is a bug."
+    @assert Ω.𝛺 ≥ 0/μs             "Pulse__Ω_BangBang: \
+                                    negative 𝛺=$(Ω.𝛺). This is a bug."
+    @assert Ω.𝑟ꜛ > 0  &&  Ω.𝑟ꜜ > 0 "Pulse__Ω_BangBang: \
+                                    negative slew rate (𝑟ꜛ=$(Ω.𝑟ꜛ), 𝑟ꜜ=$(Ω.𝑟ꜜ)). \
+                                    This is a bug."
 end
 
 function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,ℝ}                              #(2.3) phase() Pulse__Ω_BangBang
@@ -336,11 +561,13 @@ function (Ω::Pulse__Ω_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{�
     β = (2^30+1)//2^30
     if            𝑡 < 0μs            throw(DomainError(𝑡,"Time cannot be negative."))
     elseif  0μs   ≤ 𝑡 ≤ 𝑒𝑣[1]        return 𝕂(0)/μs
-    elseif  𝑒𝑣[1] ≤ 𝑡 ≤ 𝑒𝑣[2]        return ( 𝑡-𝑒𝑣[1] )⋅𝑟ꜛ
+    elseif  𝑒𝑣[1] < 𝑡 < 𝑒𝑣[2]        return ( 𝑡-𝑒𝑣[1] )⋅𝑟ꜛ
     elseif  𝑒𝑣[2] ≤ 𝑡 ≤ 𝑒𝑣[3]        return 𝛺
-    elseif  𝑒𝑣[3] ≤ 𝑡 ≤ 𝑒𝑣[4]        return ( 𝑒𝑣[4]-𝑡 )⋅𝑟ꜜ
+    elseif  𝑒𝑣[3] < 𝑡 < 𝑒𝑣[4]        return ( 𝑒𝑣[4]-𝑡 )⋅𝑟ꜜ
     elseif  𝑒𝑣[4] ≤ 𝑡 ≤ 𝑒𝑣[5]⋅β      return 𝕂(0)/μs
-    else                             throw(DomainError(𝑡,"Time exceeds upper bound, 𝑇=$(𝑒𝑣[5])."))
+    elseif  𝑒𝑣[5]⋅β < 𝑡              throw(DomainError(𝑡,"Time exceeds upper bound, \
+                                                          𝑇=$(𝑒𝑣[5])."))
+    else                             @assert false "It's the Unitful-comparison's bug!"
     end
 end #^ callable Pulse__Ω_BangBang
 
@@ -359,7 +586,7 @@ function 𝑎𝑣𝑔(Ω ::Pulse__Ω_BangBang{ℚ,ℝ},                         
             if 𝑠ⱼ < 𝑡ⱼ
                 𝜔ₛ = Ω(𝑠ⱼ)
                 𝜔ₜ = Ω(𝑡ⱼ)
-                sum += (𝑡ⱼ-𝑠ⱼ)⋅( 𝜔ₛ + (𝜔ₜ-𝜔ₛ)/2 )
+                sum += (𝑡ⱼ-𝑠ⱼ)⋅( 𝜔ₛ + 𝜔ₜ )/2
             end
         end
     end
@@ -373,7 +600,7 @@ function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                      
 
     (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ) = Ω
 
-    ∫_μ(𝑟) = √( 4ε/𝑟 )
+    ∫_μ(𝑟) = √( 4ε / 𝑟 )
 
     β = (2^30+1)//2^30
     if            𝑡 < 0μs            throw(DomainError(𝑡,"Time cannot be negative."))
@@ -382,7 +609,9 @@ function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                      
     elseif  𝑒𝑣[2] ≤ 𝑡 < 𝑒𝑣[3]        return                𝑒𝑣[3]-𝑡
     elseif  𝑒𝑣[3] ≤ 𝑡 < 𝑒𝑣[4]        return min( ∫_μ(𝑟ꜜ) , 𝑒𝑣[4]-𝑡 )
     elseif  𝑒𝑣[4] ≤ 𝑡 ≤ 𝑒𝑣[5]⋅β      return max(           𝑒𝑣[5]-𝑡 , 0μs)
-    else                             throw(DomainError(𝑡,"Time exceeds upper bound, 𝑇=$(𝑒𝑣[5])."))
+    elseif  𝑒𝑣[5]⋅β < 𝑡              throw(DomainError(𝑡,"Time exceeds upper bound, \
+                                                          𝑇=$(𝑒𝑣[5])."))
+    else                             @assert false "It's the Unitful-comparison's bug!"
     end
 
 end #^ 𝑠𝑡𝑒𝑝()
