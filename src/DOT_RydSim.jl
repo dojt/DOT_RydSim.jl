@@ -222,31 +222,30 @@ Implied in this: Entries are increasing with index.
 #### Docs of other fields:
 See source!
 """
-struct Pulse__Δ_BangBang{ℚ,ℝ} <: Pulse                                                              #(2.2) struct Pulse__Δ_BangBang
+struct Pulse__Δ_BangBang{ℚ} <: Pulse                                                                #(2.2) struct Pulse__Δ_BangBang
     𝑒𝑣   ::NTuple{5, μs_t{ℚ} }          # events
     𝑟ꜛ   ::Radperμs_per_μs_t{ℚ}         # up-ramp rate
     𝛥    ::Rad_per_μs_t{ℚ}              # top plateau value
     𝑟ꜜ   ::Radperμs_per_μs_t{ℚ}         # down-ramp rate
 end
 
-function Pulse__Δ_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},                                                 #(2.2) constructor Pulse__Δ_BangBang
-                                𝑡ᵒᶠᶠ     ::μs_t{ℚ},
-                                𝑇        ::μs_t{ℚ},
-                                𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
-                                ;
-                                𝛥ₘₐₓ           ::Rad_per_μs_t{ℚ},
-                                𝛥ᵣₑₛ           ::Rad_per_μs_t{ℚ},
-                                𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ},
-                                𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ}
-                                                 = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
-                                φᵣₑₛ           ::ℚ,                     # "\varphi"
+function Pulse__Δ_BangBang{ℚ}(𝑡ᵒⁿ      ::μs_t{ℚ},                                                   #(2.2) constructor Pulse__Δ_BangBang
+                              𝑡ᵒᶠᶠ     ::μs_t{ℚ},
+                              𝑇        ::μs_t{ℚ},
+                              𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
+                              ;
+                              𝛥ₘₐₓ           ::Rad_per_μs_t{ℚ},
+                              𝛥ᵣₑₛ           ::Rad_per_μs_t{ℚ},
+                              𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ},
+                              𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ}
+                                               = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
 
-                                𝑡ₘₐₓ           ::μs_t{ℚ},
-                                𝑡ᵣₑₛ           ::μs_t{ℚ},
-                                𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}                ) ::
-                                                          Pulse__Δ_BangBang{ℚ,ℝ}   where{ℚ,ℝ}
+                              𝑡ₘₐₓ           ::μs_t{ℚ},
+                              𝑡ᵣₑₛ           ::μs_t{ℚ},
+                              𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}                ) ::
+                                                          Pulse__Δ_BangBang{ℚ}   where{ℚ}
 
-    ℂ = Complex{ℝ}
+
 
     @assert 0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇
 
@@ -268,17 +267,17 @@ function Pulse__Δ_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
     𝑡ᵒᶠᶠ % 𝑡ᵣₑₛ == 0μs       || throw(ArgumentError("𝑡ᵒᶠᶠ ($(𝑡ᵒᶠᶠ)) is not integer multiple \
                                                      of 𝑡ᵣₑₛ ($(𝑡ᵣₑₛ))."))
 
-    γ::ℂ =
-        if 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 < 0/μs
-            𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 = -𝛥_𝑡𝑎𝑟𝑔𝑒𝑡           # Warning! Change sign of 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡  𝗪𝗮𝗿𝗻𝗶𝗻𝗴!
-            cis( δround(ℝ(π);δ=φᵣₑₛ) )
-        else
-            ℂ(0)
-        end
 
 
-    𝑟ꜛ        = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤
-    𝑟ꜜ        = 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+    # Warning! 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 can be negative!                                       𝗪𝗮𝗿𝗻𝗶𝗻𝗴!
+    #          Signs of 𝑟ꜛ, 𝑟ꜜ, 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 must all be the same                         !
+    #          for the stuff to work.                                                 !
+
+
+
+
+    𝑟ꜛ        = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ⋅ sgn(𝛥_𝑡𝑎𝑟𝑔𝑒𝑡)
+    𝑟ꜜ        = 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ⋅ sgn(𝛥_𝑡𝑎𝑟𝑔𝑒𝑡)
     𝑡ᵒⁿ⁻ᵗᵃʳ   = 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡/ 𝑟ꜛ               # time from "on" to reaching target value
     𝑡ᵖᵉᵃᵏ     = min(𝑡ᵒⁿ⁻ᵗᵃʳ , 𝑡ᵒᶠᶠ-𝑡ᵒⁿ)    # time from "on" to peak value
     𝛥ᵖᵉᵃᵏ     = 𝑡ᵖᵉᵃᵏ⋅𝑟ꜛ                   # peak value
@@ -303,10 +302,10 @@ function Pulse__Δ_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
                                              between 𝑡ᵒᶠᶠ=$(𝑡ᵒᶠᶠ) and 𝑇=$(𝑇) too small \
                                              for 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ($(𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤))."))
 
-    return Pulse__Δ_BangBang(γ, 𝑒𝑣, 𝑟ꜛ, 𝛥ᵖᵉᵃᵏ, 𝑟ꜜ)
+    return Pulse__Δ_BangBang{ℚ}(γ, 𝑒𝑣, 𝑟ꜛ, 𝛥ᵖᵉᵃᵏ, 𝑟ꜜ)
 end
 
-function _check(Δ::Pulse__Δ_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                                               #(2.2) _check() Pulse__Δ_BangBang
+function _check(Δ::Pulse__Δ_BangBang{ℚ}) where{ℚ}                                                   #(2.2) _check() Pulse__Δ_BangBang
     @assert 0μs ≤ Δ.𝑒𝑣[1]        "Pulse__Δ_BangBang: \
                                   𝑒𝑣=$(Δ.𝑒𝑣) has negative time. This is a bug."
     @assert issorted(Δ.𝑒𝑣)       "Pulse__Δ_BangBang: \
@@ -316,17 +315,14 @@ function _check(Δ::Pulse__Δ_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                 
                                   sign mismatch between 𝛥,𝑟ꜛ,𝑟ꜜ. This is a bug."
 end
 
-function phase(Δ::Pulse__Δ_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,ℝ}                              #(2.2) phase() Pulse__Δ_BangBang
-    # let's take the opportunity to run some checks:
-    _check(Δ)
-
-    return Δ.γ
+function phase(Δ::Pulse__Δ_BangBang{ℚ})      where{ℚ}                                               #(2.2) phase() Pulse__Δ_BangBang
+    throw(ErrorException("DAU catch: Δ-pulses have no phase."))
 end
 
 #
 # This function is to demonstrate the pulse shape data, and maybe for plotting or whatnot.
 #
-function (Δ::Pulse__Δ_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{𝕂}   where{ℚ,ℝ,𝕂}                  #(2.2) callable Pulse__Δ_BangBang
+function (Δ::Pulse__Δ_BangBang{ℚ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{𝕂}   where{ℚ,𝕂}                      #(2.2) callable Pulse__Δ_BangBang
 
     (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ, 𝛥) = Δ
 
@@ -343,10 +339,10 @@ function (Δ::Pulse__Δ_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{�
     end
 end #^ callable Pulse__Δ_BangBang
 
-function 𝑎𝑣𝑔(Δ ::Pulse__Δ_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑎𝑣𝑔() Pulse__Δ_BangBang
+function 𝑎𝑣𝑔(Δ ::Pulse__Δ_BangBang{ℚ},                                                              #(2.2) 𝑎𝑣𝑔() Pulse__Δ_BangBang
              𝑡 ::μs_t{𝕂}
              ;
-             𝛥𝑡 ::μs_t{𝕂}               ) ::Rad_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
+             𝛥𝑡 ::μs_t{𝕂}               ) ::Rad_per_μs_t{𝕂}       where{ℚ,𝕂}
 
     (;𝑒𝑣) = Δ
     𝑡ᵉⁿᵈ  = 𝑡+𝛥𝑡
@@ -365,10 +361,10 @@ function 𝑎𝑣𝑔(Δ ::Pulse__Δ_BangBang{ℚ,ℝ},                         
     return sum/𝛥𝑡
 end #^ 𝑎𝑣𝑔()
 
-function 𝑠𝑡𝑒𝑝(Δ::Pulse__Δ_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑠𝑡𝑒𝑝() Pulse__Δ_BangBang
+function 𝑠𝑡𝑒𝑝(Δ::Pulse__Δ_BangBang{ℚ},                                                              #(2.2) 𝑠𝑡𝑒𝑝() Pulse__Δ_BangBang
               𝑡 ::μs_t{𝕂}
               ;
-              ε ::𝕂                     ) ::μs_t{𝕂}   where{ℚ,ℝ,𝕂}
+              ε ::𝕂                     ) ::μs_t{𝕂}   where{ℚ,𝕂}
 
     (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ) = Δ
 
@@ -466,7 +462,6 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
                                 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ}
                                                  = 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤,
                                 φᵣₑₛ           ::ℚ,                     # "\varphi"
-
                                 𝑡ₘₐₓ           ::μs_t{ℚ},
                                 𝑡ᵣₑₛ           ::μs_t{ℚ},
                                 𝛥𝑡ₘᵢₙ          ::μs_t{ℚ}                ) ::
@@ -497,9 +492,9 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
     γ::ℂ =
         if 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 < 0/μs
             𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 = -𝛺_𝑡𝑎𝑟𝑔𝑒𝑡           # Warning! Change sign of 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡  𝗪𝗮𝗿𝗻𝗶𝗻𝗴!
-            cis( δround(ℝ(π);δ=φᵣₑₛ) )
-        else
-            ℂ(0)
+            cis( δround(ℝ(π);δ=φᵣₑₛ) )     #          𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 (and 𝑟ꜛ, 𝑟ꜜ)           !
+        else                               #          must be positive, sign          !
+            ℂ(0)                           #          is hidden in the phase.         !
         end
 
 
@@ -529,7 +524,7 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
                                              between 𝑡ᵒᶠᶠ=$(𝑡ᵒᶠᶠ) and 𝑇=$(𝑇) too small \
                                              for 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ($(𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤))."))
 
-    return Pulse__Ω_BangBang(γ, 𝑒𝑣, 𝑟ꜛ, 𝛺ᵖᵉᵃᵏ, 𝑟ꜜ)
+    return Pulse__Ω_BangBang{ℚ,ℝ}(γ, 𝑒𝑣, 𝑟ꜛ, 𝛺ᵖᵉᵃᵏ, 𝑟ꜜ)
 end
 
 function _check(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                                               #(2.3) _check() Pulse__Ω_BangBang
