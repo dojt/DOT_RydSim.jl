@@ -177,7 +177,10 @@ Returns x- and y-data for plotting.
 """
 function plotpulse(::Pulse) ::NamedTuple end
 
-# ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.2. Ω_BangBang Pulse
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.2. Δ_BangBang Pulse
+
+
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.3. Ω_BangBang Pulse
 
 @doc raw"""
 Struct `Pulse__Ω_BangBang` `<:` `Pulse`
@@ -222,7 +225,7 @@ Implied in this: Entries are increasing with index.
 #### Docs of other fields:
 See source!
 """
-struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse                                                              #(2.2) struct Pulse__Ω_BangBang
+struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse                                                              #(2.3) struct Pulse__Ω_BangBang
     γ    ::Complex{ℝ}                   # phase
     𝑒𝑣   ::NTuple{5, μs_t{ℚ} }          # events
     𝑟ꜛ   ::Radperμs_per_μs_t{ℚ}         # up-ramp rate
@@ -230,7 +233,7 @@ struct Pulse__Ω_BangBang{ℚ,ℝ} <: Pulse                                     
     𝑟ꜜ   ::Radperμs_per_μs_t{ℚ}         # down-ramp rate
 end
 
-function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},                                                 #(2.2) constructor Pulse__Ω_BangBang
+function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},                                                 #(2.3) constructor Pulse__Ω_BangBang
                                 𝑡ᵒᶠᶠ     ::μs_t{ℚ},
                                 𝑇        ::μs_t{ℚ},
                                 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 ::Rad_per_μs_t{ℚ}
@@ -307,7 +310,7 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
     return Pulse__Ω_BangBang(γ, 𝑒𝑣, 𝑟ꜛ, 𝛺ᵖᵉᵃᵏ, 𝑟ꜜ)
 end
 
-function _check(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                                               #(2.2) _check() Pulse__Ω_BangBang
+function _check(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                                               #(2.3) _check() Pulse__Ω_BangBang
     0μs ≤ Ω.𝑒𝑣[1]    ||  throw(ErrorException("Pulse__Ω_BangBang: \
                                                𝑒𝑣=$(Ω.𝑒𝑣) has negative time. This is a bug."))
     issorted(Ω.𝑒𝑣)   ||  throw(ErrorException("Pulse__Ω_BangBang: \
@@ -316,7 +319,7 @@ function _check(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                 
                                                negative 𝛺==$(Ω.𝛺). This is a bug."))
 end
 
-function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,ℝ}                              #(2.2) phase() Pulse__Ω_BangBang
+function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,ℝ}                              #(2.3) phase() Pulse__Ω_BangBang
     # let's take the opportunity to run some checks:
     _check(Ω)
 
@@ -326,7 +329,7 @@ end
 #
 # This function is to demonstrate the pulse shape data, and maybe for plotting or whatnot.
 #
-function (Ω::Pulse__Ω_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{𝕂}   where{ℚ,ℝ,𝕂}                  #(2.2) callable Pulse__Ω_BangBang
+function (Ω::Pulse__Ω_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{𝕂}   where{ℚ,ℝ,𝕂}                  #(2.3) callable Pulse__Ω_BangBang
 
     (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ, 𝛺) = Ω
 
@@ -341,7 +344,7 @@ function (Ω::Pulse__Ω_BangBang{ℚ,ℝ})(𝑡 ::μs_t{𝕂}) ::Rad_per_μs_t{�
     end
 end #^ callable Pulse__Ω_BangBang
 
-function 𝑎𝑣𝑔(Ω ::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑎𝑣𝑔() Pulse__Ω_BangBang
+function 𝑎𝑣𝑔(Ω ::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.3) 𝑎𝑣𝑔() Pulse__Ω_BangBang
              𝑡 ::μs_t{𝕂}
              ;
              𝛥𝑡 ::μs_t{𝕂}               ) ::Rad_per_μs_t{𝕂}       where{ℚ,ℝ,𝕂}
@@ -363,7 +366,7 @@ function 𝑎𝑣𝑔(Ω ::Pulse__Ω_BangBang{ℚ,ℝ},                         
     return sum/𝛥𝑡
 end #^ 𝑎𝑣𝑔()
 
-function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.2) 𝑠𝑡𝑒𝑝() Pulse__Ω_BangBang
+function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                                                            #(2.3) 𝑠𝑡𝑒𝑝() Pulse__Ω_BangBang
               𝑡 ::μs_t{𝕂}
               ;
               ε ::𝕂                     ) ::μs_t{𝕂}   where{ℚ,ℝ,𝕂}
@@ -385,15 +388,15 @@ function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                      
 end #^ 𝑠𝑡𝑒𝑝()
 
 
-function plotpulse(Ω::Pulse__Ω_BangBang) ::NamedTuple                                               #(2.2) plotpulse() Pulse__Ω_BangBang
-#    𝑋 = Iterators.flatten( [ [(0//1)μs], (𝑡 for 𝑡 ∈ Ω.𝑒𝑣) ] )
-#    return (  x⃗ = collect(𝑋),
-#              y⃗ = [ Ω(𝑥) for 𝑥 ∈ 𝑋 ]  )
-
+function plotpulse(Ω::Pulse__Ω_BangBang) ::NamedTuple                                               #(2.3) plotpulse() Pulse__Ω_BangBang
     (; 𝑒𝑣, 𝛺) = Ω
-    x⃗ = [ (0//1)μs , 𝑒𝑣[1],     𝑒𝑣[2], 𝑒𝑣[3], 𝑒𝑣[4],     𝑒𝑣[5]     ]
-    y⃗ = [ (0//1)/μs, (0//1)/μs, 𝛺,     𝛺,     (0//1)/μs, (0//1)/μs ]
+    x⃗ = [ (0//1)μs  ,  𝑒𝑣[1]     , 𝑒𝑣[2] , 𝑒𝑣[3] , 𝑒𝑣[4]     ,  𝑒𝑣[5]     ]
+    y⃗ = [ (0//1)/μs ,  (0//1)/μs , 𝛺     , 𝛺     , (0//1)/μs ,  (0//1)/μs ]
     return (x⃗=x⃗, y⃗=y⃗)
+    # 𝙇𝙖𝙯𝙮 𝙫𝙚𝙧𝙨𝙞𝙤𝙣 (𝙙𝙚𝙛𝙚𝙧𝙧𝙞𝙣𝙜 𝙩𝙤 𝙘𝙖𝙡𝙡𝙖𝙗𝙡𝙚):
+    #    𝑋 = Iterators.flatten( [ [(0//1)μs], (𝑡 for 𝑡 ∈ Ω.𝑒𝑣) ] )
+    #    return (  x⃗ = collect(𝑋),
+    #              y⃗ = [ Ω(𝑥) for 𝑥 ∈ 𝑋 ]  )
 end
 
 # ***************************************************************************************************************************
