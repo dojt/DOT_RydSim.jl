@@ -92,21 +92,14 @@ function test__pulses(Opts::Symbol...)
         ArgumentError("Options not recognized: $(setdiff(Opts,ALL_OPTS))")
     )
 
-    if :Big ∈ Opts
-        ℝ  = NumbersBig.ℝ
-        ℂ  = NumbersBig.ℂ
-        𝒊  = NumbersBig.𝒊
-        𝒊π = NumbersBig.𝒊
-        ℤ  = NumbersBig.ℤ
-        ℚ  = NumbersBig.ℚ
-    else
-        ℝ  = NumbersF64.ℝ
-        ℂ  = NumbersF64.ℂ
-        𝒊  = NumbersF64.𝒊
-        𝒊π = NumbersF64.𝒊
-        ℤ  = NumbersF64.ℤ
-        ℚ  = NumbersF64.ℚ
-    end
+    My_Numbers = ( :Big ∈ Opts ? NumbersBig : NumbersF64 )
+
+    ℝ  = My_Numbers.ℝ
+    ℂ  = My_Numbers.ℂ
+    𝒊  = My_Numbers.𝒊
+    𝒊π = My_Numbers.𝒊
+    ℤ  = My_Numbers.ℤ
+    ℚ  = My_Numbers.ℚ
 
 	@testset verbose=true """Test pulses $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
         @testset verbose=true "Helpers" begin
@@ -125,6 +118,9 @@ function test__pulses(Opts::Symbol...)
                 end
             end
         end #^ testset "Helpers"
+
+        continue here
+
         @testset "(more stuff)" begin
             @test false skip=true
         end
@@ -164,17 +160,14 @@ function test__secrets(Opts::Symbol...)
         ArgumentError("Options not recognized: $(setdiff(Opts,ALL_OPTS))")
     )
 
-    if :Big ∈ Opts
-        ℝ  = NumbersBig.ℝ
-        ℂ  = NumbersBig.ℂ
-        𝒊  = NumbersBig.𝒊
-        𝒊π = NumbersBig.𝒊
-    else
-        ℝ  = NumbersF64.ℝ
-        ℂ  = NumbersF64.ℂ
-        𝒊  = NumbersF64.𝒊
-        𝒊π = NumbersF64.𝒊
-    end
+    My_Numbers = ( :Big ∈ Opts ? NumbersBig : NumbersF64 )
+
+    ℝ  = My_Numbers.ℝ
+    ℂ  = My_Numbers.ℂ
+    𝒊  = My_Numbers.𝒊
+    𝒊π = My_Numbers.𝒊
+    ℤ  = My_Numbers.ℤ
+    ℚ  = My_Numbers.ℚ
 
 	@testset verbose=true """Sub-module `Schrödinger`: Secrets $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
         @testset "Helpers" begin
@@ -298,17 +291,14 @@ function test__schröd!(Opts::Symbol...)
         ArgumentError("Options not recognized: $(setdiff(Opts,ALL_OPTS))")
     )
 
-    if :Big ∈ Opts
-        ℝ  = NumbersBig.ℝ
-        ℂ  = NumbersBig.ℂ
-        𝒊  = NumbersBig.𝒊
-        𝒊π = NumbersBig.𝒊
-    else
-        ℝ  = NumbersF64.ℝ
-        ℂ  = NumbersF64.ℂ
-        𝒊  = NumbersF64.𝒊
-        𝒊π = NumbersF64.𝒊
-    end
+    My_Numbers = ( :Big ∈ Opts ? NumbersBig : NumbersF64 )
+
+    ℝ  = My_Numbers.ℝ
+    ℂ  = My_Numbers.ℂ
+    𝒊  = My_Numbers.𝒊
+    𝒊π = My_Numbers.𝒊
+    ℤ  = My_Numbers.ℤ
+    ℚ  = My_Numbers.ℚ
 
 	@testset verbose=true """Sub-module `Schrödinger`: schröd!() $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
 
@@ -331,8 +321,11 @@ import .Test__Schrödinger
 
 @testset verbose=true "Testing DOT_RydSim.jl" begin
     test__units()
+    test__pulses()
     test__pulses(:Big)
+    Test__Schrödinger.test__secrets()
     Test__Schrödinger.test__secrets(:Big)
+    Test__Schrödinger.test__schröd!()
     Test__Schrödinger.test__schröd!(:Big)
 end
 
