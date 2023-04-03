@@ -33,7 +33,7 @@ module DOT_RydSim
 export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
 export δround
-export Pulse__Ω_BangBang
+export Pulse__Ω_BangBang, Pulse__Δ_BangBang
 
 
 # ***************************************************************************************************************************
@@ -320,7 +320,7 @@ function Pulse__Δ_BangBang{ℚ}(𝑡ᵒⁿ      ::μs_t{ℚ},                  
                                              between 𝑡ᵒᶠᶠ=$(𝑡ᵒᶠᶠ) and 𝑇=$(𝑇) too small \
                                              for 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ($(𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤))."))
 
-    return Pulse__Δ_BangBang{ℚ}(γ, 𝑒𝑣, 𝑟ꜛ, 𝛥ᵖᵉᵃᵏ, 𝑟ꜜ)
+    return Pulse__Δ_BangBang{ℚ}(𝑒𝑣, 𝑟ꜛ, 𝛥ᵖᵉᵃᵏ, 𝑟ꜜ)
 end
 
 function _check(Δ::Pulse__Δ_BangBang{ℚ}) where{ℚ}                                                   #(2.2) _check() Pulse__Δ_BangBang
@@ -331,6 +331,7 @@ function _check(Δ::Pulse__Δ_BangBang{ℚ}) where{ℚ}                         
     @assert sign(Δ.𝛥) ==
         sign(Δ.𝑟ꜛ) == sign(Δ.𝑟ꜜ) "Pulse__Δ_BangBang: \
                                   sign mismatch between 𝛥,𝑟ꜛ,𝑟ꜜ. This is a bug."
+    return true
 end
 
 function phase(Δ::Pulse__Δ_BangBang{ℚ})      where{ℚ}                                               #(2.2) phase() Pulse__Δ_BangBang
@@ -557,9 +558,11 @@ function _check(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) where{ℚ,ℝ}                 
                                     𝑒𝑣=$(Ω.𝑒𝑣) not sorted. This is a bug."
     @assert Ω.𝛺 ≥ 0/μs             "Pulse__Ω_BangBang: \
                                     negative 𝛺=$(Ω.𝛺). This is a bug."
-    @assert Ω.𝑟ꜛ > 0  &&  Ω.𝑟ꜜ > 0 "Pulse__Ω_BangBang: \
+    @assert Ω.𝑟ꜛ > 0/μs^2  &&
+        Ω.𝑟ꜜ > 0/μs^2               "Pulse__Ω_BangBang: \
                                     negative slew rate (𝑟ꜛ=$(Ω.𝑟ꜛ), 𝑟ꜜ=$(Ω.𝑟ꜜ)). \
                                     This is a bug."
+    return true
 end
 
 function phase(Ω::Pulse__Ω_BangBang{ℚ,ℝ}) ::Complex{ℝ}      where{ℚ,ℝ}                              #(2.3) phase() Pulse__Ω_BangBang
@@ -650,6 +653,12 @@ end
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3. Sub-module Schrödinger
 
 include("Schrödinger.mod.jl")
+
+
+# ***************************************************************************************************************************
+# ——————————————————————————————————————————————————————————————————————————————————————————————————— 4. Sub-module HW_Descriptions
+
+include("HW_Descriptions.mod.jl")
 
 end # module DOT_RydSim
 # EOF
