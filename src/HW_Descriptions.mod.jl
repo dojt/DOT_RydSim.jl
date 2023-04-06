@@ -22,8 +22,17 @@ Exports:
     `fileread_HW_Descr( `*select*` ; filename ::String, ℤ=Int128) ::HW_Descr{Rational{ℤ}}`
 
 The types used in "*select*" are not exported.  They are:
+
   * `HW_AWS_QuEra`
   * and that's it for now.
+
+Both `default_HW_Descr()` and `fileread_HW_Descr(HW_AWS_QuEra,...)` accept the following
+keyword arguments:
+
+  * `Ω_downslew_factor`
+  * `Δ_downslew_factor
+both of type rational.
+
 """
 module HW_Descriptions
 export HW_Descr, default_HW_Descr, fileread_HW_Descr
