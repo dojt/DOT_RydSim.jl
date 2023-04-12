@@ -17,24 +17,31 @@ Quantum simulation of (small!!) arrays of Rydberg atoms.
 
 # Exports
 
-## General
-* (nothing yet)
+  * Function [schröd!](@ref)
 
-## Number definitions (in sub-modules `Numbers`𝑥𝑦𝑧)
-* (also nothing)
+  * Abstract type [`Pulse`](@ref), with sub-types
+
+    * [`Pulse__Ω_BangBang`](@ref),
+    * [`Pulse__Δ_BangBang`](@ref)
+    * ... (tbc)
+
+  * Functions for using Pulses: [`phase`](@ref), [`𝑎𝑣𝑔`](@ref), [`𝑠𝑡𝑒𝑝`](@ref), [`plotpulse`](@ref)
+
+  * Helper function [`δround`](@ref)
 
 # Sub-modules
 
 Sub-module names are not exported.
 
-* `Schrödinger` — Simulation of quantum evolution
+* [`Schrödinger`](@ref) — Simulation of quantum evolution
+* [`HW_Descriptions`](@ref) — Types for defining and functions for reading hardware
+  descriptions.
 """
 module DOT_RydSim
 export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
 export δround
 export Pulse__Ω_BangBang, Pulse__Δ_BangBang
-
 
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 0. Packages
@@ -265,7 +272,7 @@ function Pulse__Δ_BangBang{ℚ}(𝑡ᵒⁿ      ::μs_t{ℚ},                  
 
 
 
-    @assert 0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇
+    0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇     || throw(ArgumentError("Need  0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇."))
 
     𝛥ₘₐₓ > 0/μs              || throw(ArgumentError("𝛥ₘₐₓ must be positive."))
     𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 > 0/μs^2    || throw(ArgumentError("Max slew rate 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 must \
@@ -294,8 +301,8 @@ function Pulse__Δ_BangBang{ℚ}(𝑡ᵒⁿ      ::μs_t{ℚ},                  
 
 
 
-    𝑟ꜛ        = 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ⋅ sgn(𝛥_𝑡𝑎𝑟𝑔𝑒𝑡)
-    𝑟ꜜ        = 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ⋅ sgn(𝛥_𝑡𝑎𝑟𝑔𝑒𝑡)
+    𝑟ꜛ        = ( 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ≥ 0/μs ? 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   : -𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   )
+    𝑟ꜜ        = ( 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡 ≥ 0/μs ? 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 : -𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 )
     𝑡ᵒⁿ⁻ᵗᵃʳ   = 𝛥_𝑡𝑎𝑟𝑔𝑒𝑡/ 𝑟ꜛ               # time from "on" to reaching target value
     𝑡ᵖᵉᵃᵏ     = min(𝑡ᵒⁿ⁻ᵗᵃʳ , 𝑡ᵒᶠᶠ-𝑡ᵒⁿ)    # time from "on" to peak value
     𝛥ᵖᵉᵃᵏ     = 𝑡ᵖᵉᵃᵏ⋅𝑟ꜛ                   # peak value
@@ -493,7 +500,7 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
 
     ℂ = Complex{ℝ}
 
-    @assert 0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇
+    0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇     || throw(ArgumentError("Need  0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇."))
 
     𝛺ₘₐₓ > 0/μs              || throw(ArgumentError("𝛺ₘₐₓ must be positive."))
     𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 > 0/μs^2    || throw(ArgumentError("Max slew rate 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 must \
