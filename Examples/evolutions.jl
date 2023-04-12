@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.23
+# v0.19.24
 
 using Markdown
 using InteractiveUtils
@@ -54,6 +54,14 @@ begin
 	"""
 end
 
+# ╔═╡ e8d2070b-0754-4572-b87a-96cb50e95992
+begin
+	using DOT_NiceMath.NumbersF64
+	hw = DOT_RydSim.HW_Descriptions.default_HW_Descr(; ℤ,
+					Ω_downslew_factor = 1//5,
+					Δ_downslew_factor = 1//6)
+end
+
 # ╔═╡ 6ff539d6-f1b8-4872-b61f-c4d3c7ac53bc
 md"""
 # Evolutions
@@ -73,11 +81,6 @@ md"""
 We load the default hardware description that comes with the `DOT_RydSim` package, adding some "creativity" by allowing downward slew rates to be higher than upward.
 """
 
-# ╔═╡ e8d2070b-0754-4572-b87a-96cb50e95992
-hw = DOT_RydSim.HW_Descriptions.default_HW_Descr(;
-					Ω_downslew_factor = 2//1,
-					Δ_downslew_factor = 3//1)
-
 # ╔═╡ 5c48717b-3520-4901-8b2b-4bdc850b1c60
 md"""
 ## Plot some pulse shapes
@@ -86,21 +89,83 @@ md"""
 # ╔═╡ 83ee857d-95a0-439d-bd3b-5d5dc63e2b36
 md"""
 ### Ω-pulse shape data
-* 𝑡ᵒⁿ:      $( @bind _Ω_tᵒⁿ       Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ) )
-* 𝑡ᵒᶠᶠ:     $( @bind _Ω_tᵒᶠᶠ      Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ) )
-* Target 𝛺: $( @bind _Ω_Ω_target  Slider(0 : NoUnits(hw.𝛺ₘₐₓ/hw.𝛺ᵣₑₛ) ) )
+* 𝑡ᵒⁿ:      $( @bind _Ω_tᵒⁿ       Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
+* 𝑡ᵒᶠᶠ:     $( @bind _Ω_tᵒᶠᶠ      Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
+* Target 𝛺: $( @bind _Ω_Ω_target  Slider(-NoUnits(hw.𝛺ₘₐₓ/hw.𝛺ᵣₑₛ) : +NoUnits(hw.𝛺ₘₐₓ/hw.𝛺ᵣₑₛ); default=0,max_steps=1+2Int(NoUnits(hw.𝛺ₘₐₓ/hw.𝛺ᵣₑₛ)) ) )
 """
 
 # ╔═╡ 7c2a54f5-d0c4-47d6-a750-f3f75195bc9b
 md"""
-  * 𝑡ᵒⁿ      = $( _Ω_𝑡ᵒⁿ        = _Ω_tᵒⁿ     ⋅hw.𝑡ᵣₑₛ )
-  * 𝑡ᵒᶠᶠ     = $( _Ω_𝑡ᵒᶠᶠ       = _Ω_tᵒᶠᶠ    ⋅hw.𝑡ᵣₑₛ )
+  * 𝑡ᵒⁿ       = $( _Ω_𝑡ᵒⁿ        = _Ω_tᵒⁿ     ⋅hw.𝑡ᵣₑₛ )
+  * 𝑡ᵒᶠᶠ      = $( _Ω_𝑡ᵒᶠᶠ       = _Ω_tᵒᶠᶠ    ⋅hw.𝑡ᵣₑₛ )
   * 𝛺\_𝑡𝑎𝑟𝑔𝑒𝑡 = $( _Ω_𝛺_𝑡𝑎𝑟𝑔𝑒𝑡   = _Ω_Ω_target⋅hw.𝛺ᵣₑₛ )
-  * 𝑇        = $( _Ω_𝑇          = hw.𝑡ₘₐₓ             )
+  * 𝑇         = $( _Ω_𝑇          = hw.𝑡ₘₐₓ             )
 """
 
 # ╔═╡ c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
-let
+let plt = plot()
+	(;𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ, 𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ) = hw
+
+	p = Pulse__Ω_BangBang{ℚ,ℝ}( _Ω_𝑡ᵒⁿ, _Ω_𝑡ᵒᶠᶠ, _Ω_𝑇, _Ω_𝛺_𝑡𝑎𝑟𝑔𝑒𝑡
+						;   𝛺ₘₐₓ, 𝛺ᵣₑₛ,
+							𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+							φᵣₑₛ,
+							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+	DOT_RydSim._check(p)
+
+	plot!(plt,
+			𝑡 -> p(𝑡) , 0.0μs: 0.0001μs :_Ω_𝑇,
+			; label="𝛺",
+			color=:blue)
+
+	(;x⃗,y⃗) = plotpulse(p)
+	scatter!(plt,
+			x⃗, y⃗
+			; label="",
+			color=:blue,
+			markerstrokewidth=0)
+	println("Phase = $(phase(p))")
+	plt
+end
+
+# ╔═╡ 68087630-b9dc-474e-9cd4-28d2a8f306de
+md"""
+### Δ-pulse shape data
+* 𝑡ᵒⁿ:      $( @bind _Δ_tᵒⁿ       Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
+* 𝑡ᵒᶠᶠ:     $( @bind _Δ_tᵒᶠᶠ      Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
+* Target 𝛥: $( @bind _Δ_Δ_target  Slider(-NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ) : +NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ); default=0,max_steps=1+2Int(NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ)) ) )
+"""
+
+# ╔═╡ 509423cd-07f2-48b4-a638-89bbed48cfc0
+md"""
+  * 𝑡ᵒⁿ       = $( _Δ_𝑡ᵒⁿ        = _Δ_tᵒⁿ     ⋅hw.𝑡ᵣₑₛ )
+  * 𝑡ᵒᶠᶠ      = $( _Δ_𝑡ᵒᶠᶠ       = _Δ_tᵒᶠᶠ    ⋅hw.𝑡ᵣₑₛ )
+  * 𝛥\_𝑡𝑎𝑟𝑔𝑒𝑡 = $( _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡   = _Δ_Δ_target⋅hw.𝛥ᵣₑₛ )
+  * 𝑇         = $( _Δ_𝑇          = hw.𝑡ₘₐₓ             )
+"""
+
+# ╔═╡ 307128bc-5929-4ed0-8214-7a44b0c51c54
+let plt = plot()
+	(;𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, 𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ) = hw
+
+	p = Pulse__Δ_BangBang{ℚ}( _Δ_𝑡ᵒⁿ, _Δ_𝑡ᵒᶠᶠ, _Δ_𝑇, _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡
+						;   𝛥ₘₐₓ, 𝛥ᵣₑₛ,
+							𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+	DOT_RydSim._check(p)
+
+	plot!(plt,
+			𝑡 -> p(𝑡) , 0.0μs: 0.0001μs :_Δ_𝑇,
+			; label="𝛥",
+			color=:blue)
+
+	(;x⃗,y⃗) = plotpulse(p)
+	scatter!(plt,
+			x⃗, y⃗
+			; label="",
+			color=:blue,
+			markerstrokewidth=0)
+	plt
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -131,7 +196,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "cabdb9d8dfc501558301f0a0daa6235e124df9cc"
+project_hash = "f4dd2962ace3944538921a7c91ed3fce2f6fe6ce"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -634,9 +699,9 @@ version = "0.8.1+0"
 
 [[deps.OpenSSL]]
 deps = ["BitFlags", "Dates", "MozillaCACerts_jll", "OpenSSL_jll", "Sockets"]
-git-tree-sha1 = "6503b77492fd7fcb9379bf73cd31035670e3c509"
+git-tree-sha1 = "e9d68fe4b5f78f215aa2f0e6e6dc9e9911d33048"
 uuid = "4d8831e6-92b7-49fb-bdf8-b643e874388c"
-version = "1.3.3"
+version = "1.3.4"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -870,9 +935,9 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.TranscodingStreams]]
 deps = ["Random", "Test"]
-git-tree-sha1 = "94f38103c984f89cf77c402f2a68dbd870f8165f"
+git-tree-sha1 = "0b829474fed270a4b0ab07117dce9b9a2fa7581a"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.11"
+version = "0.9.12"
 
 [[deps.Tricks]]
 git-tree-sha1 = "aadb748be58b492045b4f56166b5188aa63ce549"
@@ -1070,9 +1135,9 @@ version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "c6edfe154ad7b313c01aceca188c05c835c67360"
+git-tree-sha1 = "49ce682769cd5de6c72dcf1b94ed7790cd08974c"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
-version = "1.5.4+0"
+version = "1.5.5+0"
 
 [[deps.fzf_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1155,6 +1220,9 @@ version = "1.4.1+0"
 # ╟─5c48717b-3520-4901-8b2b-4bdc850b1c60
 # ╟─83ee857d-95a0-439d-bd3b-5d5dc63e2b36
 # ╟─7c2a54f5-d0c4-47d6-a750-f3f75195bc9b
-# ╠═c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
+# ╟─c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
+# ╟─68087630-b9dc-474e-9cd4-28d2a8f306de
+# ╟─509423cd-07f2-48b4-a638-89bbed48cfc0
+# ╠═307128bc-5929-4ed0-8214-7a44b0c51c54
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
