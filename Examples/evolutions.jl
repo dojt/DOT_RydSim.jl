@@ -55,11 +55,11 @@ begin
 end
 
 # ╔═╡ e8d2070b-0754-4572-b87a-96cb50e95992
-begin
+hw = let
 	using DOT_NiceMath.NumbersF64
-	hw = DOT_RydSim.HW_Descriptions.default_HW_Descr(; ℤ,
-					Ω_downslew_factor = 1//5,
-					Δ_downslew_factor = 1//6)
+	DOT_RydSim.HW_Descriptions.default_HW_Descr(; ℤ,
+					Ω_downslew_factor = 1//7,
+					Δ_downslew_factor = 1//11)
 end
 
 # ╔═╡ 6ff539d6-f1b8-4872-b61f-c4d3c7ac53bc
@@ -303,9 +303,9 @@ version = "0.1.3"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "69dedc07472e12c066e9bb9bd0f75b8f3c362bfc"
+git-tree-sha1 = "5ed1326cdf563021faea2d68a635d3a07fab4e79"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.2"
+version = "0.1.3"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "e8119c1a33d267e16108be441a287a6981ba1630"
@@ -1223,6 +1223,6 @@ version = "1.4.1+0"
 # ╟─c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
 # ╟─68087630-b9dc-474e-9cd4-28d2a8f306de
 # ╟─509423cd-07f2-48b4-a638-89bbed48cfc0
-# ╠═307128bc-5929-4ed0-8214-7a44b0c51c54
+# ╟─307128bc-5929-4ed0-8214-7a44b0c51c54
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
