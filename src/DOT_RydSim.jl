@@ -335,8 +335,11 @@ function _check(Δ::Pulse__Δ_BangBang{ℚ}) where{ℚ}                         
                                   𝑒𝑣=$(Δ.𝑒𝑣) has negative time. This is a bug."
     @assert issorted(Δ.𝑒𝑣)       "Pulse__Δ_BangBang: \
                                   𝑒𝑣=$(Δ.𝑒𝑣) not sorted. This is a bug."
-    @assert sign(Δ.𝛥) ==
-        sign(Δ.𝑟ꜛ) == sign(Δ.𝑟ꜜ) "Pulse__Δ_BangBang: \
+    @assert (
+        Δ.𝛥≥0/μs && Δ.𝑟ꜛ>0/μs^2 && Δ.𝑟ꜜ>0/μs^2
+        ||
+        Δ.𝛥<0/μs && Δ.𝑟ꜛ<0/μs^2 && Δ.𝑟ꜜ<0/μs^2
+        )                         "Pulse__Δ_BangBang: \
                                   sign mismatch between 𝛥,𝑟ꜛ,𝑟ꜜ. This is a bug."
     return true
 end
