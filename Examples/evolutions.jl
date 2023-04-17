@@ -34,7 +34,7 @@ begin
 	using LinearAlgebra: Hermitian, normalize
 
 	md"""
-	## Package setup
+	## 0. Package setup
 	"""
 end
 
@@ -72,12 +72,6 @@ hw = let
 					Δ_downslew_factor = 1//11)
 end
 
-# ╔═╡ aa70e5e5-f7a6-42a5-b16d-5ddd682c643b
-begin
-	using DOT_RydSim.Schrödinger: schröd!
-	md"**REMOVE THIS: FIX FOR BUG**"
-end
-
 # ╔═╡ 6ff539d6-f1b8-4872-b61f-c4d3c7ac53bc
 md"""
 # Evolutions
@@ -87,14 +81,14 @@ Demonstrate pulse shapes and time evolution.
 
 # ╔═╡ 3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
 md"""
-## Get a hardware description
+## 1. Get a hardware description
 
 We load the default hardware description that comes with the `DOT_RydSim` package, adding some "creativity" by allowing downward slew rates to be higher than upward.
 """
 
 # ╔═╡ 5c48717b-3520-4901-8b2b-4bdc850b1c60
 md"""
-## Plot some pulse shapes
+## 2. Plot some pulse shapes
 """
 
 # ╔═╡ 83ee857d-95a0-439d-bd3b-5d5dc63e2b36
@@ -180,7 +174,7 @@ end
 
 # ╔═╡ 60c0cc75-cf92-4c8e-9f47-2adf51c25c39
 md"""
-## Let's evolve!
+## 3. One simple evolution
 """
 
 # ╔═╡ f3e0b461-9456-47d3-ba0f-495ac2d6bae4
@@ -189,6 +183,11 @@ md"""
 * $(  @bind _NEW_R Button("New R")  )
 * $(  @bind _NEW_ψ Button("New ψ")  )
 * ``\log_{10}(\varepsilon) =`` $( @bind LOGε Slider(-50.0: 0.1 :0.0; default=-1.0) )
+"""
+
+# ╔═╡ e8063849-8a09-4864-a1c1-748d78fbd9f3
+md"""
+``\varepsilon = `` $( 10^LOGε )
 """
 
 # ╔═╡ 08969ad5-2b70-448b-8358-98512218fff5
@@ -231,13 +230,22 @@ let
 	DOT_RydSim._check(pΔ)
 
 
-	schröd!(ψ, ℝ(_𝑇)
-			;
-			Ω = pΩ,
-			Δ = pΔ,
-			R,
-			ε=10^LOGε )
+	ψₒᵣᵢ = copy(ψ)
+
+	@time schröd!(ψ, ℝ(_𝑇)
+				;
+				Ω = pΩ,
+				Δ = pΔ,
+				R,
+				ε=10^LOGε )
+
+	ψₒᵣᵢ' ⋅ ψ
 end
+
+# ╔═╡ 5a3bfcd7-395f-4401-ad81-322bba6f4a79
+md"""
+## 4. Parameter-dependent plots
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -268,7 +276,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "4b0519140ce006afef4b0d15316be9093c12bccc"
+project_hash = "b6fa1c0cf5719622e9a386ef4cc6ad0391c740b9"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -375,9 +383,9 @@ version = "0.1.3"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "5ed1326cdf563021faea2d68a635d3a07fab4e79"
+git-tree-sha1 = "acf7d632b4c66d23225b63a4d7749ee72f6c0c47"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.3"
+version = "0.1.4"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "e8119c1a33d267e16108be441a287a6981ba1630"
@@ -1296,11 +1304,12 @@ version = "1.4.1+0"
 # ╟─68087630-b9dc-474e-9cd4-28d2a8f306de
 # ╟─509423cd-07f2-48b4-a638-89bbed48cfc0
 # ╟─307128bc-5929-4ed0-8214-7a44b0c51c54
-# ╟─60c0cc75-cf92-4c8e-9f47-2adf51c25c39
+# ╠═60c0cc75-cf92-4c8e-9f47-2adf51c25c39
 # ╟─f3e0b461-9456-47d3-ba0f-495ac2d6bae4
+# ╟─e8063849-8a09-4864-a1c1-748d78fbd9f3
 # ╟─08969ad5-2b70-448b-8358-98512218fff5
 # ╟─7ad2b6e2-968e-4c60-a571-591330104703
-# ╠═aa70e5e5-f7a6-42a5-b16d-5ddd682c643b
 # ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
+# ╟─5a3bfcd7-395f-4401-ad81-322bba6f4a79
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
