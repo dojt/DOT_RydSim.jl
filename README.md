@@ -5,6 +5,19 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
+####  **v0.1.4**
+
+**Done**
+
+* Fixed bug with import-export of `schröd!()`
+* Fixed docs of `schröd!()`
+
+**Todo**
+
+* Combination of pulses with time-evolution is still untested!
+
+
+
 ####  **v0.1.3**
 
 **Done**
