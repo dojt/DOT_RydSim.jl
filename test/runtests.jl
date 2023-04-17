@@ -112,6 +112,7 @@ function _test_pulse(p::Pulse, 𝑇 ::DOT_RydSim.μs_t{𝐑}) ::Nothing    where
         𝑡  = rand()⋅𝑇
         ε  = rand()⋅ustrip(μs,𝑇-𝑡)⋅1e-9
         𝛥𝑡 = 𝑠𝑡𝑒𝑝(p,𝑡;ε)
+        @test 𝛥𝑡 > 0μs
         𝑎  = 𝑎𝑣𝑔(p,𝑡;𝛥𝑡)
         ∫  = quadgk( t -> p(t)-𝑎, 𝑡,𝑡+𝛥𝑡 )[1]
         @test abs( ∫ ) ≤ ε

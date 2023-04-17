@@ -5,6 +5,19 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
+####  **v0.1.6**
+
+**Done**
+
+* Reorganized `Ctrl_Exception` throwing in module `Schrödinger`
+
+**Todo**
+
+* Combination of pulses with time-evolution is still untested!
+
+
+
+
 ####  **v0.1.5**
 
 **Done**
@@ -14,8 +27,6 @@ Time goes up!
 **Todo**
 
 * Combination of pulses with time-evolution is still untested!
-
-
 
 ####  **v0.1.4**
 
