@@ -19,16 +19,8 @@ Simulation of multi-qubit quantum evolution under time-dependent Hamiltonian.
 # Exports
 
 ## General
-* (nothing yet)
+* Function [`schröd!()`](@ref)
 
-## Number definitions (in sub-modules `Numbers`𝑥𝑦𝑧)
-* (also nothing)
-
-# Sub-modules
-
-Sub-module names are not exported by `DOT_RydSim`.
-
-* `DOT_NiceMath.` — nope...
 """
 module Schrödinger
 export schröd!
@@ -135,7 +127,7 @@ end #^ timestep!()
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.2: schröd!()
 @doc raw"""
-Function `schröd!(ψ  ::Vector{ℂ},  𝑇 ::μs_t{ℝ},  γ ::ℂ ; ...)   where{ℝ,ℂ,𝕄_t}`
+Function `schröd!(ψ  ::Vector{ℂ},  𝑇 ::μs_t{ℝ} ; ...)   where{ℝ,ℂ,𝕄_t}`
 
 Simulates time evolution under time-dependent Hamiltonian
 ```math
@@ -156,50 +148,20 @@ returned value of an italic-type function must be unitful.
 ### Position variables
 1. `ψ` — state vector at time 𝑡=0μs; will be modified in place.
 2. `𝑇` — end-time of evolution, in μs.
-3. `γ` — phase for the X-term; time independent, dimensionless
 
 ### Returns
-...nothing.
+... nothing.
 
 ### Keyword arguments
 
 #### Mandatory keyword arguments: Defining the Hamiltonian
 
-* `𝜔` — function which, essentially, gives the Rabi frequency as a function of time.  (The
-  Rabi frequency must always be non-negative.)   See § *The Functions* below.
-* `𝛿` — function which, essentially, gives the Rabi frequency as a function of time.  See
-  § *The Functions* below.
-* `R` — Hermitian operators, of type `Hermitian{ℂ,𝕄_t}`
+* `Ω ::Pulse` — Defines the Rabi-frequency pulse shape, including the phase, γ
+* `Δ ::Pulse` — Defines the detuning pulse shape.
+* `R ::Hermitian{ℂ,𝕄_t}` — Rydberg interaction term for all atoms.
 
 #### Optional keyword arguments
-* `𝑚𝑎𝑥_𝜔_𝑠𝑙𝑒𝑤` — (type `::Radperμs_per_μs_t{ℝ}`) defaults to infinity; is checked in every
-  time step.
-* `𝑚𝑎𝑥_𝛿_𝑠𝑙𝑒𝑤` — (type `::Radperμs_per_μs_t{ℝ}`) defaults to infinity; is checked in every
-  time step.
-
-## The Functions: 𝜔, 𝛿
-The signatures must be
-```julia
-    𝜔( 𝑡 ::μs_t{ℝ}, ε ::ℝ )  ::TimeStep_t{ℝ}
-    𝛿( 𝑡 ::μs_t{ℝ}, ε ::ℝ )  ::TimeStep_t{ℝ}
-```
-
-With ``f`` the Rabi frequency (case `𝜔`) or detuning (case `𝛿`), respectively, on input
-``t \in \left[0,T\right[`` and ``\varepsilon > 0``, the functions return, in the struct,
-the information:
-* `𝛥𝑡` — largest ``\delta \in \left]0,T-t\right]`` (in μs) for which
-```math
-    \int_t^{t+\delta} | f(s) - μ_\delta|\,ds \le \varepsilon,
-```
-with
-```math
-    \mu_δ := \tfrac{1}{\delta} \int_t^{t+\delta} f(s) \,ds.
-```
-* `𝑎𝑣𝑔` the value of ``\mu_{\Delta\!t}``:
-```math
-    \tfrac{1}{\Delta\!t} \int_t^{t+\Delta\!t} f(s) \,ds,
-```
-in rad/μs.
+* `ε ::ℝ` — (`\varepsilon`) Simulation accuracy; determines size of time steps.
 """
 function schröd!(ψ  ::Vector{ℂ},
                  𝑇  ::μs_t{ℝ}
