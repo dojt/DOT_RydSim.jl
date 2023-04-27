@@ -383,9 +383,9 @@ version = "0.1.3"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "3f8e65e9652f5741e17968afcb5636c782ec2bbb"
+git-tree-sha1 = "51f1a9a3280ee3e2cefaa0dc539bd91ec61b3e3b"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.7"
+version = "0.1.8"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "e8119c1a33d267e16108be441a287a6981ba1630"
