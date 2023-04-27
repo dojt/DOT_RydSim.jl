@@ -188,6 +188,8 @@ function schröd!(ψ  ::Vector{ℂ},
                  R  ::Hermitian{ℂ,𝕄_t},
                  ε  ::ℝ                   = ℝ(1e-3) ) ::Nothing   where{ℝ,ℂ,𝕄_t, P₁<:Pulse, P₂<:Pulse}
 
+    @assert ε > 0   "ε ≤ 0"
+
     A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
     𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
@@ -202,10 +204,11 @@ function schröd!(ψ  ::Vector{ℂ},
 
         let
             𝑠Ω > 0μs ||
-                throw(Ctrl_Exception("Time-step for Ω is non-positive: $(BigFloat(𝑠Ω)) ≤ 0μs"))
-
+                throw(Ctrl_Exception("Time-step at 𝑡=$(BigFloat(𝑡)) for Ω is non-positive: \
+                                      $(BigFloat(𝑠Ω)) ≤ 0μs"))
             𝑠Δ > 0μs ||
-                throw(Ctrl_Exception("Time-step for Δ is non-positive: $(BigFloat(𝑠Δ)) ≤ 0μs"))
+                throw(Ctrl_Exception("Time-step at 𝑡=$(BigFloat(𝑡)) for Δ is non-positive: \
+                                      $(BigFloat(𝑠Δ)) ≤ 0μs"))
         end
 
         Ω_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠Ω)

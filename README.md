@@ -5,17 +5,23 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
-####  **v0.1.9**
+####  **v0.1.10**
 
 **Done**
 
-* Bug fixes in pulse shapes 𝑠𝑡𝑒𝑝() fn.
+* Try to fix bugs in shapes 𝑠𝑡𝑒𝑝() fn.
 
 **Todo**
 
 * Combination of pulses with time-evolution is still untested!
 
 
+
+####  **v0.1.9**
+
+**Done**
+
+* Bug fixes in pulse shapes 𝑠𝑡𝑒𝑝() fn.
 
 ####  **v0.1.8**
 
