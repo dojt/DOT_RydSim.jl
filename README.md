@@ -5,11 +5,11 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
-####  **v0.1.10**
+####  **v0.1.11**
 
 **Done**
 
-* Try to fix bugs in shapes 𝑠𝑡𝑒𝑝() fn.
+* 𝑠𝑡𝑒𝑝() fns seem to work now
 
 **Todo**
 
@@ -17,15 +17,21 @@ Time goes up!
 
 
 
+####  **v0.1.10**
+
+**WIP**
+
+* Try to fix bugs in shapes 𝑠𝑡𝑒𝑝() fn.
+
 ####  **v0.1.9**
 
-**Done**
+**WIP**
 
 * Bug fixes in pulse shapes 𝑠𝑡𝑒𝑝() fn.
 
 ####  **v0.1.8**
 
-**Done**
+**WIP**
 
 * Bug fix in `Schrödinger.schröd!()` -- again!
 

@@ -414,20 +414,6 @@ function 𝑠𝑡𝑒𝑝(Δ::Pulse__Δ_BangBang{ℚ},                          
     else                         @assert false "It's the Unitful-comparison's bug!"
     end
 
-    # Remove this after testing?
-    #
-    # if            𝑡 < 0μs        throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) cannot be \
-    #                                                   negative."))
-    # elseif  0μs   ≤ 𝑡 < 𝑒𝑣[1]    return                𝑒𝑣[1]-𝑡
-    # elseif  𝑒𝑣[1] ≤ 𝑡 < 𝑒𝑣[2]    return min( ∫_μ(𝑟ꜛ) , 𝑒𝑣[2]-𝑡 )
-    # elseif  𝑒𝑣[2] ≤ 𝑡 < 𝑒𝑣[3]    return                𝑒𝑣[3]-𝑡
-    # elseif  𝑒𝑣[3] ≤ 𝑡 < 𝑒𝑣[4]    return min( ∫_μ(𝑟ꜜ) , 𝑒𝑣[4]-𝑡 )
-    # elseif  𝑒𝑣[4] ≤ 𝑡 < 𝑒𝑣[5]    return                𝑒𝑣[5]-𝑡
-    # elseif  𝑒𝑣[5] < 𝑡            throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) exceeds upper \
-    #                                                   bound 𝑇=$(BigFloat(𝑒𝑣[5]))."))
-    # else                         @assert false "It's the Unitful-comparison's bug!"
-    # end
-
 end #^ 𝑠𝑡𝑒𝑝()
 
 
@@ -655,12 +641,12 @@ function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                      
     # β = (2^30+1)//2^30
     if            𝑡 < 0μs        throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) cannot be \
                                                       negative."))
-    elseif  0μs   ≤ 𝑡 < 𝑒𝑣[1]    return                𝑒𝑣[1]-𝑡
-    elseif  𝑒𝑣[1] ≤ 𝑡 < 𝑒𝑣[2]    return min( ∫_μ(𝑟ꜛ) , 𝑒𝑣[2]-𝑡 )
-    elseif  𝑒𝑣[2] ≤ 𝑡 < 𝑒𝑣[3]    return                𝑒𝑣[3]-𝑡
-    elseif  𝑒𝑣[3] ≤ 𝑡 < 𝑒𝑣[4]    return min( ∫_μ(𝑟ꜜ) , 𝑒𝑣[4]-𝑡 )
-    elseif  𝑒𝑣[4] ≤ 𝑡 < 𝑒𝑣[5]    return                𝑒𝑣[5]-𝑡
-    elseif  𝑒𝑣[5] < 𝑡            throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) exceeds upper \
+    elseif  0μs < 𝑒𝑣[1] - 𝑡    return                𝑒𝑣[1]-𝑡
+    elseif  0μs < 𝑒𝑣[2] - 𝑡    return min( ∫_μ(𝑟ꜛ) , 𝑒𝑣[2]-𝑡 )
+    elseif  0μs < 𝑒𝑣[3] - 𝑡    return                𝑒𝑣[3]-𝑡
+    elseif  0μs < 𝑒𝑣[4] - 𝑡    return min( ∫_μ(𝑟ꜜ) , 𝑒𝑣[4]-𝑡 )
+    elseif  0μs < 𝑒𝑣[5] - 𝑡    return                𝑒𝑣[5]-𝑡
+    elseif  𝑒𝑣[5] - 𝑡 < 0μs    throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) exceeds upper \
                                                       bound 𝑇=$(BigFloat(𝑒𝑣[5]))."))
     else                         @assert false "It's the Unitful-comparison's bug!"
     end
