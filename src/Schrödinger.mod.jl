@@ -202,10 +202,10 @@ function schröd!(ψ  ::Vector{ℂ},
 
         let
             𝑠Ω > 0μs ||
-                throw(Ctrl_Exception("Time-step for Ω is non-positive: $(big(𝑠Ω)) ≤ 0μs"))
+                throw(Ctrl_Exception("Time-step for Ω is non-positive: $(BigFloat(𝑠Ω)) ≤ 0μs"))
 
             𝑠Δ > 0μs ||
-                throw(Ctrl_Exception("Time-step for Δ is non-positive: $(big(𝑠Δ)) ≤ 0μs"))
+                throw(Ctrl_Exception("Time-step for Δ is non-positive: $(BigFloat(𝑠Δ)) ≤ 0μs"))
         end
 
         Ω_𝛥𝑡 ::μs_t{ℝ} = min(𝑇-𝑡, 𝑠Ω)
