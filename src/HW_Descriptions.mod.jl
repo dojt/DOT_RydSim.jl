@@ -37,7 +37,6 @@ both of type rational.
 module HW_Descriptions
 export HW_Descr, default_HW_Descr, fileread_HW_Descr
 
-
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 0. Imports & Helpers
 
@@ -172,6 +171,6 @@ function default_HW_Descr(;
                       filename=pkgdir(@__MODULE__,"Resources","hw_default.json"),
                       ℤ,
                       Ω_downslew_factor, Δ_downslew_factor)
-end
+end #^ default_HW_Descr()
 
 end #^ module HW_Descriptions

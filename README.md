@@ -5,17 +5,19 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
+####  **v0.1.12**
+
+**Done**
+
+* Added simple check for Δ≠0 & Ω=0
+* Improved file-docs for DOT_RydSim.jl
+
+
 ####  **v0.1.11**
 
 **Done**
 
 * 𝑠𝑡𝑒𝑝() fns seem to work now
-
-**Todo**
-
-* Combination of pulses with time-evolution is still untested!
-
-
 
 ####  **v0.1.10**
 
