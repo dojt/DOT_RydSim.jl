@@ -198,6 +198,10 @@ function schröd!(ψ  ::Vector{ℂ},
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
     X    = X₁(A;γ=phase(Ω))               ; @assert size(X) == size(N)  "Crazy bug #2"
 
+
+    warn_RWA_count = 0
+    warn_RWA_out   = (1:3)∪(10:10:30)∪(100:100:300)∪(1000:1000:3000)∪(10000:10000:30000)
+
     𝑡 ::μs_t{ℝ} = 0μs
 
     while 𝑡  <  𝑇 - 1e-50μs
@@ -225,11 +229,13 @@ function schröd!(ψ  ::Vector{ℂ},
             throw(Ctrl_Exception("At time 𝑡=$(BigFloat(𝑡)) Ω is negative: \
                                           $(BigFloat(Ω_𝜇s)) < 0/μs"))
         if abs(Δ_𝜇) > 1e-6/μs && Ω_𝜇 < 1e-10/μs
-            @warn   """
-                    schröd!(): RWA break-down: Δ is non-zero, but Ω is very small:
-                    +  Δ=$(BigFloat(Δ_𝜇))
-                    +  Ω=$(BigFloat(Ω_𝜇))
-                    """
+            warn_RWA_count += 1
+            if n_warn_RWA ∈ warn_RWA_out
+                @warn   "\
+                        schröd!(): RWA break-down[$(n_warn_RWA)]: \
+                        Δ is non-zero, but Ω is very small: \
+                        " 𝑡=BigFloat(𝑡) Δ=BigFloat(Δ_𝜇) Ω=BigFloat(Ω_𝜇)
+            end
         end
 
         timestep!(ψ, 𝛥𝑡 ; 𝜔=Ω_𝜇, 𝛿=Δ_𝜇,
