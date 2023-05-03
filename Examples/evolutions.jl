@@ -392,9 +392,9 @@ version = "0.1.3"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "95301bcc8670d20ffccd4e7a91eb26e9d07df340"
+git-tree-sha1 = "0bd9d1de7540ecf166f77a0339930261268e7572"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.12"
+version = "0.1.13"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "e8119c1a33d267e16108be441a287a6981ba1630"
@@ -1319,7 +1319,7 @@ version = "1.4.1+0"
 # ╟─e8063849-8a09-4864-a1c1-748d78fbd9f3
 # ╟─08969ad5-2b70-448b-8358-98512218fff5
 # ╟─7ad2b6e2-968e-4c60-a571-591330104703
-# ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
+# ╟─d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
 # ╟─5a3bfcd7-395f-4401-ad81-322bba6f4a79
 # ╠═f1a3fa1b-90bf-4fe0-96d6-ebdb72ad9f04
 # ╟─00000000-0000-0000-0000-000000000001
