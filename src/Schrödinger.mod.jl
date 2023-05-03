@@ -230,9 +230,9 @@ function schröd!(ψ  ::Vector{ℂ},
                                           $(BigFloat(Ω_𝜇s)) < 0/μs"))
         if abs(Δ_𝜇) > 1e-6/μs && Ω_𝜇 < 1e-10/μs
             warn_RWA_count += 1
-            if n_warn_RWA ∈ warn_RWA_out
+            if warn_RWA_count ∈ warn_RWA_out
                 @warn   "\
-                        schröd!(): RWA break-down[$(n_warn_RWA)]: \
+                        schröd!(): RWA break-down[$(warn_RWA_count)]: \
                         Δ is non-zero, but Ω is very small: \
                         " 𝑡=BigFloat(𝑡) Δ=BigFloat(Δ_𝜇) Ω=BigFloat(Ω_𝜇)
             end

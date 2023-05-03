@@ -5,17 +5,16 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
-####  **v0.1.13**
+####  **v0.1.14**
 
-**Done**
+* Fixed 💩
+
+
+####  **v0.1.13**
 
 * Improved (I hope) warning for Δ≠0 & Ω=0
 
-
-
 ####  **v0.1.12**
-
-**Done**
 
 * Added simple check for Δ≠0 & Ω=0
 * Improved file-docs for DOT_RydSim.jl
