@@ -68,7 +68,7 @@ end
 hw = let
 	using DOT_NiceMath.NumbersF64
 	DOT_RydSim.HW_Descriptions.default_HW_Descr(; ℤ,
-					Ω_downslew_factor = 1//7,
+					Ω_downslew_factor = 1//13,
 					Δ_downslew_factor = 1//11)
 end
 
@@ -392,9 +392,9 @@ version = "0.1.3"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "0bd9d1de7540ecf166f77a0339930261268e7572"
+git-tree-sha1 = "9f46fbb70d019952b6ebaf4374f2662289775829"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.13"
+version = "0.1.14"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "e8119c1a33d267e16108be441a287a6981ba1630"
