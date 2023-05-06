@@ -67,7 +67,7 @@ rationalize(ℤ,x::Integer) = ℤ(x)//ℤ(1)       # bulit-in `rationalize()` wo
 end
 
 """
-	Struct `HW_Descr`
+Struct `HW_Descr{ℚ}`
 
 Holds the relevant data of the Rydberg atom array quantum device.
 """
