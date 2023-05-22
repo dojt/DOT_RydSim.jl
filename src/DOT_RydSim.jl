@@ -135,9 +135,27 @@ const GHz_t{             𝕂<:Real } =                                         
 import Base.==
 import Base.:≤
 import Base.:<
-(   ( x::μs_t{𝕂₁} == y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val == y.val
-(   ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val ≤  y.val
-(   ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool   ) where{𝕂₁,𝕂₂}      = x.val <  y.val
+(  ( x::μs_t{𝕂₁} == y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁               ,𝕂₂          } = x.val == y.val
+(  ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁               ,𝕂₂          } = x.val ≤  y.val
+(  ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁               ,𝕂₂          } = x.val <  y.val
+
+(  ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁<:AbstractFloat,𝕂₂<:Rational}      =
+    begin
+        x.val ⋅ y.val.den  ≤  y.val.num
+    end
+(  ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁<:AbstractFloat,𝕂₂<:Rational}      =
+    begin
+        x.val ⋅ y.val.den  <  y.val.num
+    end
+
+(  ( x::μs_t{𝕂₁} ≤  y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁<:Rational     ,𝕂₂<:AbstractFloat} =
+    begin
+        x.val.num  ≤  x.val.den ⋅ y.val
+    end
+(  ( x::μs_t{𝕂₁} <  y::μs_t{𝕂₂} ) ::Bool  ) where{𝕂₁<:Rational     ,𝕂₂<:AbstractFloat} =
+    begin
+        x.val.num  <  x.val.den ⋅ y.val
+    end
 
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.4. Helper: Rounding
