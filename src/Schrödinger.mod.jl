@@ -58,8 +58,8 @@ import ..μs_t, ..Rad_per_μs_t, ..Radperμs_per_μs_t
 import ..Pulse, ..phase, ..𝑎𝑣𝑔, ..𝑠𝑡𝑒𝑝
 using  ..DOT_NiceMath
 
-using LinearAlgebra: Hermitian, I as Id
-
+using LinearAlgebra: Hermitian, I as Id,
+                     axpy!, axpby!
 
 using Unitful
 using Unitful: μs
@@ -126,21 +126,26 @@ showerror(io::IO, e::Ctrl_Exception) = print(io, "schröd!(): Bad quantum ctrl d
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3. Work horses
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3.1. timestep!()
-function  timestep!(ψ  ::Vector{ℂ},
-                    𝛥𝑡 ::μs_t{ℝ}
+function  timestep!(ψ    ::Vector{ℂ},
+                    𝛥𝑡   ::μs_t{ℝ}
                     ;
-                    𝜔  ::Rad_per_μs_t{ℝ},
-                    X  ::Hermitian{ℂ,𝕄_t},
-                    𝛿  ::Rad_per_μs_t{ℝ},
-                    N  ::Hermitian{ℂ,𝕄_t},
-                    R  ::Hermitian{ℂ,𝕄_t}            ) ::Nothing      where{ℝ,ℂ,𝕄_t}
+                    𝜔    ::Rad_per_μs_t{ℝ},
+                    X    ::Hermitian{ℂ,𝕄_t},
+                    𝛿    ::Rad_per_μs_t{ℝ},
+                    N    ::Hermitian{ℂ,𝕄_t},
+                    R    ::Hermitian{ℂ,𝕄_t},
+                    WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)  ) ::Nothing      where{ℝ,ℂ,𝕄_t}
 
     let ωΔt ::ℝ              = ustrip(NoUnits, 𝜔⋅𝛥𝑡),
         δΔt ::ℝ              = ustrip(NoUnits, 𝛿⋅𝛥𝑡),
-        Δt  ::ℝ              = ustrip(μs, 𝛥𝑡),
-        A   ::Hermitian{ℂ,𝕄_t} = ωΔt⋅X - δΔt⋅N + Δt⋅R
+        Δt  ::ℝ              = ustrip(μs, 𝛥𝑡)
 
-        ψ .= cis(A)'ψ
+        # A =          ωΔt⋅X   -δΔt⋅N  +Δt⋅R
+        WS_A .= X
+        axpby!(-δΔt,N, ωΔt,WS_A.data)    # A = -δΔt⋅N + ωΔt⋅A
+        axpy!(Δt,R        ,WS_A.data)    # A = Δt⋅R + A
+
+        ψ .= cis(WS_A)'ψ
     end
     nothing
 end #^ timestep!()
@@ -198,6 +203,8 @@ function schröd!(ψ  ::Vector{ℂ},
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
     X    = X₁(A;γ=phase(Ω))               ; @assert size(X) == size(N)  "Crazy bug #2"
 
+    WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)
+
 
     warn_RWA_count = 0
     warn_RWA_out   = (1:3)∪(10:10:30)∪(100:100:300)∪(1000:1000:3000)∪(10000:10000:30000)
@@ -239,7 +246,8 @@ function schröd!(ψ  ::Vector{ℂ},
         end
 
         timestep!(ψ, 𝛥𝑡 ; 𝜔=Ω_𝜇, 𝛿=Δ_𝜇,
-                          X, N, R)
+                          X, N, R,
+                          WS_A)
 
         𝑡 += 𝛥𝑡
 
