@@ -72,9 +72,6 @@ hw = let
 					Δ_downslew_factor = 1//11)
 end
 
-# ╔═╡ 2bb53c46-b123-4564-b691-ad102c93ae9e
-using Profile
-
 # ╔═╡ 6ff539d6-f1b8-4872-b61f-c4d3c7ac53bc
 md"""
 # Evolutions
@@ -237,7 +234,7 @@ let
 
 	ψₒᵣᵢ = copy(ψ)
 
-	@profile schröd!(ψ, ℝ(_𝑇)
+	@time schröd!(ψ, ℝ(_𝑇)
 				;
 				Ω = pΩ,
 				Δ = pΔ,
@@ -246,9 +243,6 @@ let
 
 	ψₒᵣᵢ' ⋅ ψ
 end
-
-# ╔═╡ 3cefdd1e-3cd0-4dde-af66-e770ce9a8230
-Profile.print()
 
 # ╔═╡ 5a3bfcd7-395f-4401-ad81-322bba6f4a79
 md"""
@@ -266,7 +260,6 @@ PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
 PlotlyKaleido = "f2990250-8cf9-495f-b13a-cce12b45703c"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
@@ -285,7 +278,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "3d12c74065fc18a2fc2617a5c9970f3d7aeaba66"
+project_hash = "b6fa1c0cf5719622e9a386ef4cc6ad0391c740b9"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -398,9 +391,9 @@ version = "0.1.5"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "9f46fbb70d019952b6ebaf4374f2662289775829"
+git-tree-sha1 = "0f6e650d35073e3757cf4fb378f4499365696bdf"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.14"
+version = "0.1.15"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
@@ -929,10 +922,6 @@ version = "1.4.0"
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
-[[deps.Profile]]
-deps = ["Printf"]
-uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
-
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
 git-tree-sha1 = "0c03844e2231e12fda4d0086fd7cbe4098ee8dc5"
@@ -1364,9 +1353,7 @@ version = "1.4.1+0"
 # ╟─e8063849-8a09-4864-a1c1-748d78fbd9f3
 # ╟─08969ad5-2b70-448b-8358-98512218fff5
 # ╟─7ad2b6e2-968e-4c60-a571-591330104703
-# ╠═2bb53c46-b123-4564-b691-ad102c93ae9e
 # ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
-# ╠═3cefdd1e-3cd0-4dde-af66-e770ce9a8230
 # ╟─5a3bfcd7-395f-4401-ad81-322bba6f4a79
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
