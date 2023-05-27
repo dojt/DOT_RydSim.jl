@@ -86,9 +86,6 @@ md"""
 We load the default hardware description that comes with the `DOT_RydSim` package, adding some "creativity" by allowing downward slew rates to be higher than upward.
 """
 
-# ╔═╡ 200e99ac-887e-431e-9cf4-b75bc2eda1d7
-DOT_NiceMath.NumbersF64.ℤ
-
 # ╔═╡ 5c48717b-3520-4901-8b2b-4bdc850b1c60
 md"""
 ## 2. Plot some pulse shapes
@@ -391,9 +388,9 @@ version = "0.1.5"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "0f6e650d35073e3757cf4fb378f4499365696bdf"
+git-tree-sha1 = "0b271077a70613e9e7574a65acef7f13c369af5a"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.15"
+version = "0.1.16"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
@@ -1339,8 +1336,7 @@ version = "1.4.1+0"
 # ╟─9de31196-d3d7-11ed-335a-9149427b52e9
 # ╟─c80fe404-b246-490f-a959-00243c6ae7fc
 # ╟─3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
-# ╠═e8d2070b-0754-4572-b87a-96cb50e95992
-# ╠═200e99ac-887e-431e-9cf4-b75bc2eda1d7
+# ╟─e8d2070b-0754-4572-b87a-96cb50e95992
 # ╟─5c48717b-3520-4901-8b2b-4bdc850b1c60
 # ╟─83ee857d-95a0-439d-bd3b-5d5dc63e2b36
 # ╟─7c2a54f5-d0c4-47d6-a750-f3f75195bc9b
