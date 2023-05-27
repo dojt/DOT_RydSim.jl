@@ -203,7 +203,7 @@ function schröd!(ψ  ::Vector{ℂ},
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
     X    = X₁(A;γ=phase(Ω))               ; @assert size(X) == size(N)  "Crazy bug #2"
 
-    WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)
+    WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)   # workspace for `timestep!()`
 
 
     warn_RWA_count = 0
