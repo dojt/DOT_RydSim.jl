@@ -234,7 +234,7 @@ function schröd!(ψ  ::Vector{ℂ},
                                           $(BigFloat(𝑠Δ)) ≤ 0μs"))
         Ω_𝜇 ≥ 0/μs ||
             throw(Ctrl_Exception("At time 𝑡=$(BigFloat(𝑡)) Ω is negative: \
-                                          $(BigFloat(Ω_𝜇s)) < 0/μs"))
+                                          $(BigFloat(Ω_𝜇)) < 0/μs"))
         if abs(Δ_𝜇) > 1e-6/μs && Ω_𝜇 < 1e-10/μs
             warn_RWA_count += 1
             if warn_RWA_count ∈ warn_RWA_out
