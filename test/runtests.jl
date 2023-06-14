@@ -16,6 +16,8 @@
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 0.1. Packages
 
 using Test
+using JET
+
 using Logging
 
 using Unitful
@@ -36,6 +38,7 @@ using DOT_RydSim
 module Test__Dummy
 export test__dummy
 using Test
+using JET
 using Logging
 using DOT_RydSim
 
@@ -80,6 +83,7 @@ module Test__Pulses
 export test__pulses
 
 using Test
+using JET
 using Logging
 using Unitful: μs
 using LinearAlgebra: Hermitian
@@ -97,6 +101,9 @@ using DOT_RydSim: δround,
 using DOT_RydSim.HW_Descriptions
 
 function _test_pulse(p::Pulse, 𝑇 ::DOT_RydSim.μs_t{𝐑}) ::Nothing    where{𝐑}
+
+    test_opt(   𝑎𝑣𝑔, (typeof(p),typeof(𝑇))  )
+    @test_call  𝑎𝑣𝑔(p,𝑇;𝛥𝑡=𝑇)
 
     for _iter = 1:100
         ≈(a,b) = isapprox(a,b;rtol=1e-2)
@@ -139,6 +146,8 @@ function test__pulses(Opts::Symbol...)
 	@testset verbose=true """Test pulses $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
         @testset verbose=true "Helpers" begin
             @testset "δround()" begin
+                test_opt(   δround, (Float64,) )
+                @test_call δround(0.123;δ=1//3)
                 for i = 1:100
                     δ = ℚ(  rationalize(Int16,abs(randn()))  )
                     x = rand(-3:+3)⋅δ
@@ -156,6 +165,7 @@ function test__pulses(Opts::Symbol...)
 
         hw = nothing
         @testset "Load default HW-description" begin
+            # @test_call default_HW_Descr(;ℤ)
             hw = default_HW_Descr(;ℤ)
             @test hw.𝑡ₘₐₓ isa DOT_RydSim.μs_t{ℚ}
         end
@@ -169,12 +179,14 @@ function test__pulses(Opts::Symbol...)
             p = Pulse__Δ_BangBang{ℚ}(𝑇/10, 9⋅𝑇/10, 𝑇 , -𝛥ₘₐₓ/2;
                                      𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
                                      𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-            @test DOT_RydSim._check(p)
+            @test      DOT_RydSim._check(p)
+            @test_call DOT_RydSim._check(p)
             _test_pulse(p,𝑇)
             p = Pulse__Δ_BangBang{ℚ}(𝑇/10, 9⋅𝑇/10, 𝑇 , ℚ(0//1)/μs;
                                      𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
                                      𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-            @test DOT_RydSim._check(p)
+            @test      DOT_RydSim._check(p)
+            @test_call DOT_RydSim._check(p)
             _test_pulse(p,𝑇)
         end
 
@@ -183,13 +195,15 @@ function test__pulses(Opts::Symbol...)
                                        𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
                                        φᵣₑₛ,
                                        𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-            @test DOT_RydSim._check(p)
+            @test      DOT_RydSim._check(p)
+            @test_call DOT_RydSim._check(p)
             _test_pulse(p,𝑇)
             p = Pulse__Ω_BangBang{ℚ,ℝ}(𝑇/10, 9⋅𝑇/10, 𝑇 , ℚ(0//1)/μs;
                                        𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
                                        φᵣₑₛ,
                                        𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-            @test DOT_RydSim._check(p)
+            @test      DOT_RydSim._check(p)
+            @test_call DOT_RydSim._check(p)
             _test_pulse(p,𝑇)
         end
 
@@ -203,6 +217,7 @@ module Test__Schrödinger
 export test__secrets, test__schröd!
 
 using Test
+using JET
 using Logging
 using Unitful: μs
 using LinearAlgebra: Hermitian
@@ -212,8 +227,10 @@ using DOT_NiceMath
 import DOT_NiceMath.NumbersF64
 import DOT_NiceMath.NumbersBig
 
-using DOT_RydSim.Schrödinger
+using DOT_RydSim
 using DOT_RydSim: μs_t, Rad_per_μs_t, Radperμs_per_μs_t
+using DOT_RydSim.Schrödinger
+using DOT_RydSim.HW_Descriptions
 
 expi(A::Hermitian) = cis(A)
 
@@ -242,6 +259,8 @@ function test__secrets(Opts::Symbol...)
         @testset "Helpers" begin
             let N1 = Schrödinger.N₁(1,ℂ)
                 @test N1 isa Hermitian{ℂ,Matrix{ℂ}}
+                @test_opt  Schrödinger.N₁(1,ℂ)
+                @test_call Schrödinger.N₁(1,ℂ)
                 for k=1:2
                     for ℓ=1:2
                         @test N1[k,ℓ] isa ℂ
@@ -251,6 +270,8 @@ function test__secrets(Opts::Symbol...)
             end #^ N(1)
             let N2 = Schrödinger.N₁(2,ℂ)
                 @test N2 isa Hermitian{ℂ,Matrix{ℂ}}
+                @test_opt  Schrödinger.N₁(2,ℂ)
+                @test_call Schrödinger.N₁(2,ℂ)
                 for k₁=1:2
                     for k₂=1:2
                         k = 1+ 2(k₁-1)+(k₂-1)
@@ -266,6 +287,8 @@ function test__secrets(Opts::Symbol...)
             end #^ N(2)
             let N3 = Schrödinger.N₁(3,ℂ)
                 @test N3 isa Hermitian{ℂ,Matrix{ℂ}}
+                @test_opt  Schrödinger.N₁(3,ℂ)
+                @test_call Schrödinger.N₁(3,ℂ)
                 for k₁=1:2
                     for k₂=1:2
                         for k₃=1:2
@@ -287,6 +310,8 @@ function test__secrets(Opts::Symbol...)
             let γ::ℂ  = randn(ComplexF64),
                 X1    = Schrödinger.X₁(1;γ)
                 @test X1 isa Hermitian{ℂ,Matrix{ℂ}}
+                @test_opt  Schrödinger.X₁(1;γ)
+                @test_call Schrödinger.X₁(1;γ)
                 for k=1:2
                     for ℓ=1:2
                         @test X1[k,ℓ] isa ℂ
@@ -297,6 +322,8 @@ function test__secrets(Opts::Symbol...)
             let γ::ℂ  = randn(ComplexF64),
                 X2    = Schrödinger.X₁(2;γ)
                 @test X2 isa Hermitian{ℂ,Matrix{ℂ}}
+                @test_opt  Schrödinger.X₁(2;γ)
+                @test_call Schrödinger.X₁(2;γ)
                 for k₁=1:2
                     for k₂=1:2
                         k = 1+ 2(k₁-1)+(k₂-1)
@@ -313,6 +340,8 @@ function test__secrets(Opts::Symbol...)
             let γ::ℂ  = randn(ComplexF64),
                 X3 = Schrödinger.X₁(3;γ)
                 @test X3 isa Hermitian{ℂ,Matrix{ℂ}}
+                @test_opt  Schrödinger.X₁(3;γ)
+                @test_call Schrödinger.X₁(3;γ)
                 for k₁=1:2
                     for k₂=1:2
                         for k₃=1:2
@@ -348,6 +377,10 @@ function test__secrets(Opts::Symbol...)
                                           𝜔=ω/μs, 𝛿=δ/μs,
                                           X,N,R)
                     @test ψ ≈ expi(-Δt⋅(ω⋅X - δ⋅N + R))⋅ψ₀
+                    @test_call Schrödinger.timestep!(ψ, Δt⋅μs
+                                                     ;
+                                                     𝜔=ω/μs, 𝛿=δ/μs,
+                                                     X,N,R)
                 end
             end
         end #^ tstset "timestep!()"
@@ -369,15 +402,32 @@ function test__schröd!(Opts::Symbol...)
     ℤ  = My_Numbers.ℤ
     ℚ  = My_Numbers.ℚ
 
-	@testset verbose=true """Sub-module `Schrödinger`: schröd!() $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
+    @testset verbose=true """Sub-module `Schrödinger`: schröd!() $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
 
         @testset verbose=true "schröd!()" begin
             @testset "Let's just run it!" begin
                 𝟐ᴬ = 8
-                ψ ::Vector{ℂ} = randn(𝟐ᴬ)
-                𝑇 ::μs_t{ℝ}   = 1μs
+                ψ ::Vector{ℂ}              = randn(𝟐ᴬ)
+                R ::Hermitian{ℂ,Matrix{ℂ}} = let A=randn(𝟐ᴬ,𝟐ᴬ) ; Hermitian((A'+A)/2) end
 
-                @test schröd!(ψ,𝑇,γ ; 𝜔, 𝛿, R) === nothing    skip=true
+                (;Ω,Δ,𝑇) = let hw = default_HW_Descr(;ℤ)
+                    𝑇 = hw.𝑡ₘₐₓ
+                    (;𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+                     𝛥ₘₐₓ, 𝛥ᵣₑₛ,  𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+                     φᵣₑₛ,  𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ                    ) = hw
+
+                    Δ = Pulse__Δ_BangBang{ℚ}(𝑇/10, 9⋅𝑇/10, 𝑇 , -𝛥ₘₐₓ/2;
+                                             𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+                                             𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+                    Ω = Pulse__Ω_BangBang{ℚ,ℝ}(𝑇/10, 9⋅𝑇/10, 𝑇 , -𝛺ₘₐₓ/2;
+                                               𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+                                               φᵣₑₛ,
+                                               𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+                    (Ω=Ω,Δ,𝑇)
+                end
+
+                @test      schröd!(ψ,𝑇 ; Ω, Δ, R) === nothing       skip=true
+                @test_call schröd!(ψ,𝑇 ; Ω, Δ, R)
             end
         end #^ testset "schröd!()"
     end #^ function-testset
@@ -387,6 +437,8 @@ end #^ module Test__Schrödinger
 import .Test__Schrödinger
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— X. Main
+
+
 
 @testset verbose=true "Testing DOT_RydSim.jl" begin
     test__units()
