@@ -5,10 +5,15 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
+####  **v0.1.17**
+
+* Added `JET.jl` in tests
+* Bug fix
+
+
 ####  **v0.1.16**
 
 * Attempt to speed up timestep!() by adding memory workspace
-
 
 ####  **v0.1.15**
 
