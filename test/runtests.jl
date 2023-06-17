@@ -149,6 +149,7 @@ function test__pulses(Opts::Symbol...)
 
                 @test_call δround(0.123;δ=1//31)
                 @test_call δround(0.123μs;𝛿=(1//31)μs)
+                @test_call δround((123//100)μs;𝛿=(1//31)μs)
                 for i = 1:100
                     δ = ℚ(  rationalize(Int16,abs(randn()))  )
                     x = rand(-3:+3)⋅δ
@@ -162,15 +163,8 @@ function test__pulses(Opts::Symbol...)
                     @test δround(𝑥̃;𝛿) == 𝑥
                 end
 
-                @test_call δround_up(0.123μs;𝛿=(1//31)μs)
-                for i = 1:100
-                    𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
-                    𝑥 = rand(-3:+3)⋅𝛿
-                    𝑥̃ = 𝑥 - rand()⋅(1-1e-5)⋅𝛿
-                    @test δround_up(𝑥̃;𝛿) == 𝑥
-                end
-
                 @test_call δround_down(0.123μs;𝛿=(1//31)μs)
+                @test_call δround_down((123//100)μs;𝛿=(1//31)μs)
                 for i = 1:100
                     𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
                     𝑥 = rand(-3:+3)⋅𝛿
@@ -178,6 +172,14 @@ function test__pulses(Opts::Symbol...)
                     @test δround_down(𝑥̃;𝛿) == 𝑥
                 end
 
+                @test_call δround_up(0.123μs;𝛿=(1//31)μs)
+                @test_call δround_up((123//100)μs;𝛿=(1//31)μs)
+                for i = 1:100
+                    𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
+                    𝑥 = rand(-3:+3)⋅𝛿
+                    𝑥̃ = 𝑥 - rand()⋅(1-1e-5)⋅𝛿
+                    @test δround_up(𝑥̃;𝛿) == 𝑥
+                end
             end
         end #^ testset "Helpers"
 

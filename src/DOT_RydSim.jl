@@ -160,6 +160,10 @@ import Base.:<
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 2.4. Helper: Rounding
 
+import Base: rationalize
+
+rationalize( ::Type{I}, x ::Rational{I} ) where{I<:Integer}    = x
+
 @doc raw"""
 Functions
 ```julia
