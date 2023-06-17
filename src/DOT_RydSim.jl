@@ -626,7 +626,7 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
             𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 = -𝛺_𝑡𝑎𝑟𝑔𝑒𝑡           # Warning! Change sign of 𝛺_𝑡𝑎𝑟𝑔𝑒𝑡  𝗪𝗮𝗿𝗻𝗶𝗻𝗴!
             cis( δround(ℝ(π);δ=φᵣₑₛ) )     #          𝛺_𝑡𝑎𝑟𝑔𝑒𝑡 (and 𝑟ꜛ, 𝑟ꜜ)           !
         else                               #          must be positive, sign          !
-            ℂ(0)                           #          is hidden in the phase.         !
+            ℂ(1)                           #          is hidden in the phase.         !
         end
 
 

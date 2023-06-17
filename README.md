@@ -6,6 +6,10 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.1.22**
+
+* Fixed bug w/ 𝛥𝑡ₘᵢₙ
+
 ####  **v0.1.21**
 
 * Fixed bug w/ 𝛥𝑡ₘᵢₙ
