@@ -81,7 +81,7 @@ module DOT_RydSim
 
 export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
-export δround
+export δround, δround_down, δround_up
 export Pulse__Ω_BangBang, Pulse__Δ_BangBang
 
 
@@ -182,9 +182,42 @@ function δround( 𝑥 ::Quantity{𝕂,T₁,F₁}
                  𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
                                          Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
 
-    𝛿 ⋅ rationalize(ℤ,
-                    floor(𝑥/𝛿 +1//2)  )
+    𝛿 ⋅ rationalize(ℤ,     floor(𝑥/𝛿 +1//2)    )
 end
+
+
+@doc raw"""
+Functions
+```julia
+     δround_down(𝑥 ::Quantity{𝕂 ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+```
+
+Rounds `x` down to the closest multiple of `δ`.
+"""
+function δround_down( 𝑥 ::Quantity{𝕂,T₁,F₁}
+                     ;
+                     𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
+                                         Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
+
+    𝛿 ⋅ rationalize(ℤ,     floor(𝑥/𝛿)          )
+end
+
+@doc raw"""
+Functions
+```julia
+     δround_up(𝑥 ::Quantity{𝕂 ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+```
+
+Rounds `x` up to the closest multiple of `δ`.
+"""
+function δround_up( 𝑥 ::Quantity{𝕂,T₁,F₁}
+                    ;
+                    𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
+                                         Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
+
+    𝛿 ⋅ rationalize(ℤ,     ceil(𝑥/𝛿)           )
+end
+
 
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3. Pulse constructors

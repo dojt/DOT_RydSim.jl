@@ -206,9 +206,6 @@ function schröd!(ψ  ::Vector{ℂ},
     WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)   # workspace for `timestep!()`
 
 
-    warn_RWA_count = 0
-    warn_RWA_out   = (1:3)∪(10:10:30)∪(100:100:300)∪(1000:1000:3000)∪(10000:10000:30000)
-
     𝑡 ::μs_t{ℝ} = 0μs
 
     while 𝑡  <  𝑇 - 1e-50μs
@@ -236,7 +233,7 @@ function schröd!(ψ  ::Vector{ℂ},
             throw(Ctrl_Exception("At time 𝑡=$(BigFloat(𝑡)) Ω is negative: \
                                 $(BigFloat(Ω_𝜇)) < 0/μs"))
         if abs(Δ_𝜇) > 1e-6/μs && Ω_𝜇 < 1e-10/μs
-            throw(Ctrl_Exception("RWA break-down[$(warn_RWA_count)]: \
+            throw(Ctrl_Exception("RWA break-down: \
                                 Δ is non-zero, but Ω is very small: \
                                 𝑡=$(BigFloat(𝑡)) Δ=$(BigFloat(Δ_𝜇)) Ω=$(BigFloat(Ω_𝜇))"))
         end

@@ -143,11 +143,12 @@ function test__pulses(Opts::Symbol...)
     ℤ  = My_Numbers.ℤ
     ℚ  = My_Numbers.ℚ
 
-	@testset verbose=true """Test pulses $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
+    @testset verbose=true """Test pulses $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
         @testset verbose=true "Helpers" begin
-            @testset "δround()" begin
-                test_opt(   δround, (Float64,) )
-                @test_call δround(0.123;δ=1//3)
+            @testset "δround{,_up,_down}()" begin
+
+                @test_call δround(0.123;δ=1//31)
+                @test_call δround(0.123μs;𝛿=(1//31)μs)
                 for i = 1:100
                     δ = ℚ(  rationalize(Int16,abs(randn()))  )
                     x = rand(-3:+3)⋅δ
@@ -160,6 +161,23 @@ function test__pulses(Opts::Symbol...)
                     𝑥̃ = 𝑥 + (rand()-0.5)⋅(1-1e-5)⋅𝛿
                     @test δround(𝑥̃;𝛿) == 𝑥
                 end
+
+                @test_call δround_up(0.123μs;𝛿=(1//31)μs)
+                for i = 1:100
+                    𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
+                    𝑥 = rand(-3:+3)⋅𝛿
+                    𝑥̃ = 𝑥 - rand()⋅(1-1e-5)⋅𝛿
+                    @test δround_up(𝑥̃;𝛿) == 𝑥
+                end
+
+                @test_call δround_down(0.123μs;𝛿=(1//31)μs)
+                for i = 1:100
+                    𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
+                    𝑥 = rand(-3:+3)⋅𝛿
+                    𝑥̃ = 𝑥 + rand()⋅(1-1e-5)⋅𝛿
+                    @test δround_down(𝑥̃;𝛿) == 𝑥
+                end
+
             end
         end #^ testset "Helpers"
 
