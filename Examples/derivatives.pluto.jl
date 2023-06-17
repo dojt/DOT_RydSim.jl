@@ -61,7 +61,7 @@ begin
 	using DOT_NiceMath.NumbersF64
 
 	using DOT_RydSim
-	using DOT_RydSim: Rad_per_μs_t
+	using DOT_RydSim: μs_t, Rad_per_μs_t
 
 	md"""
 	Loading packages `DOT_NiceMath` (for things such as ℝ and ⋅) and `DOT_RydSim`, the work horse.
@@ -69,6 +69,19 @@ begin
 end
 
 # ╔═╡ 3f33c55e-a27c-41bf-8034-683c1ebb0ab0
+	"""
+	Function
+	```julia
+	load_hw(filename = :default
+			; Ω_downslew_factor = 1//1,
+			  Δ_downslew_factor = 1//1  ) ::HW_Descr
+	```
+
+	The `filename` can be either a string identifying a file name, or the symbol `:default`.
+
+	The only file type currently supported is AWS-QuEra's (`HW_AWS_QuEra`).
+	"""
+load_hw = 
 let
 
 	using DOT_RydSim.HW_Descriptions: HW_Descr,
@@ -94,6 +107,7 @@ let
 					Ω_downslew_factor = 1//1,
 					Δ_downslew_factor = 1//1              ) ::HW_Descr{ℚ}
 
+		@assert select == :default  "What?!??"
 		return default_HW_Descr(;
 								ℤ,
 								Ω_downslew_factor,
@@ -112,17 +126,86 @@ Demonstrate pulse shapes and time evolution.
 
 # ╔═╡ 3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
 md"""
-## 1. Fix a hardware description
+## 1. Loading of a hardware description
 
-We load the default hardware description that comes with the `DOT_RydSim` package, adding some "creativity" by allowing downward slew rates to be from the upward slew rate.
+Define function `load_hw()` for the package and, here on Pluto, do it.
 """
 
 # ╔═╡ e8d2070b-0754-4572-b87a-96cb50e95992
-hw = let
-	default_HW_Descr(; ℤ,
-					Ω_downslew_factor = 1//3,
-					Δ_downslew_factor = 1//2)
+hw = load_hw(;  Ω_downslew_factor = 1//3,
+				Δ_downslew_factor = 1//2)
+
+# ╔═╡ 002084ea-526e-4f86-9450-50153dbdc0b6
+md"""
+## 2. Extract info from HW description
+
+Define function `get_hw_data()` for the package.
+"""
+
+# ╔═╡ 181e0f89-e4ae-4c5f-9f37-8b0a7f22bd1e
+get_hw_data = 
+let
+	_NT = @NamedTuple{
+					_blah::Nothing,
+					𝛺ₘₐₓ        ::Rad_per_μs_t{ℚ},
+					𝛺ᵣₑₛ        ::Rad_per_μs_t{ℚ},
+					𝛥ₘₐₓ        ::Rad_per_μs_t{ℚ}, 𝛥ᵣₑₛ::Rad_per_μs_t{ℚ},
+					𝑡ᵒᶠᶠₘₐₓ     ::μs_t{ℚ},
+					𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ ::μs_t{ℚ},
+					𝑡ᵣₑₛ        ::μs_t{ℚ},
+					𝑡ₘₐₓ        ::μs_t{ℚ}
+			}
+
+	@doc raw"""
+	Function `get_hw_data( ::HW_Descr) ::NamedTuple`
+
+	Returns a named tuple with the following fields, all of
+	unitful rational number types:
+	* `𝛺ₘₐₓ`, `𝛺ᵣₑₛ`; 
+	* `𝛥ₘₐₓ` `𝛥ᵣₑₛ`;
+	* `𝑡ᵣₑₛ`;
+	* `𝑡ₘₐₓ`           — max total evolution time
+	* `𝑡ᵒᶠᶠₘₐₓ`        — largest switch-off time which allows full range of 𝛺 and 𝛥
+	* `𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ`    — smallest duration ``t^{\text{off}}-t^{\text{on}}``
+	  which allows full range of  𝛺 and 𝛥
+	"""
+	function get_hw_data(hw ::HW_Descr{ℚ}) ::_NT
+
+		( ; 𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ,
+			𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+			𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ                               ) = hw
+
+		𝛺_𝑢𝑝𝑡𝑖𝑚𝑒 = 𝛺ₘₐₓ / 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 ; 𝛺_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒 = 𝛺ₘₐₓ / 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+		𝛥_𝑢𝑝𝑡𝑖𝑚𝑒 = 𝛥ₘₐₓ / 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 ; 𝛥_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒 = 𝛥ₘₐₓ / 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+
+		return (_blah=nothing,
+				𝛺ₘₐₓ, 𝛺ᵣₑₛ,
+				𝛥ₘₐₓ, 𝛥ᵣₑₛ,
+				𝑡ᵒᶠᶠₘₐₓ    = 𝑡ₘₐₓ - max(𝛺_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒,
+										𝛥_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒),
+				𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ = max( 𝛺_𝑢𝑝𝑡𝑖𝑚𝑒,
+								   𝛥_𝑢𝑝𝑡𝑖𝑚𝑒,
+								   𝛥𝑡ₘᵢₙ),
+				𝑡ᵣₑₛ, 𝑡ₘₐₓ)
+	end
+
+	get_hw_data
 end
+
+# ╔═╡ c8f7abbc-16c4-46d8-89a6-145599f68e49
+get_hw_data(hw)
+
+# ╔═╡ fb7b9e47-d573-46c3-ad98-8ab8e88ed64f
+md"""
+## 3. Expectation-value function
+
+Define function `evf()`
+"""
+
+# ╔═╡ 48eafe3d-2e42-42fc-bc5f-578e0fd83ab3
+md"""
+# Old Shit
+"""
 
 # ╔═╡ af4df139-800a-4518-93ba-04cda2e58f57
 md"""
@@ -297,27 +380,22 @@ function evf( ; 𝛺 ::Rad_per_μs_t{ℚ}, 𝛥 ::Rad_per_μs_t{ℚ},
 				Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ,
 				𝑇,
 				hw) ::Union{ℂ,Missing}
-	( ; 𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ,
-		𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-		𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ                               ) = hw
 
-	pΩ = nothing; pΔ = nothing
-	try
-		pΩ = Pulse__Ω_BangBang{ℚ,ℝ}(Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ, 𝑇, 𝛺
-								;   𝛺ₘₐₓ, 𝛺ᵣₑₛ,
-									𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-									φᵣₑₛ,
-									𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-		DOT_RydSim._check(pΩ)
+	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ) = get_hw_data(hw)
+	# (; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ, 𝑡ᵒᶠᶠₘₐₓ,𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ) = get_hw_info(hw)
 
-		pΔ = Pulse__Δ_BangBang{ℚ}(  Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ, 𝑇, 𝛥
-								;   𝛥ₘₐₓ, 𝛥ᵣₑₛ,
-									𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-									𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-		DOT_RydSim._check(pΔ)
-	catch
-		return missing
-	end
+	pΩ = Pulse__Ω_BangBang{ℚ,ℝ}(Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ, 𝑇, 𝛺
+								;   hw.𝛺ₘₐₓ, hw.𝛺ᵣₑₛ,
+									hw.𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, hw.𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+									hw.φᵣₑₛ,
+									hw.𝑡ₘₐₓ, hw.𝑡ᵣₑₛ, hw.𝛥𝑡ₘᵢₙ)
+	DOT_RydSim._check(pΩ)
+
+	pΔ = Pulse__Δ_BangBang{ℚ}(  Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ, 𝑇, 𝛥
+							 ;  hw.𝛥ₘₐₓ, hw.𝛥ᵣₑₛ,
+								hw.𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, hw.𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+								hw.𝑡ₘₐₓ, hw.𝑡ᵣₑₛ, hw.𝛥𝑡ₘᵢₙ)
+	DOT_RydSim._check(pΔ)
 
 	ψᵤₛₑ = copy(ψ)
 
@@ -333,17 +411,25 @@ function evf( ; 𝛺 ::Rad_per_μs_t{ℚ}, 𝛥 ::Rad_per_μs_t{ℚ},
 end
 
 # ╔═╡ 2533daf8-1155-4d87-aa33-702315b31d4d
-f(;𝛺,𝛥) = evf(;𝛺, 𝛥,
-	 			Ω_𝑡ᵒⁿ=_Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ=_Ω_𝑡ᵒᶠᶠ,
-	 			Δ_𝑡ᵒⁿ=_Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ=_Δ_𝑡ᵒᶠᶠ,
-	 			𝑇=_𝑇,
-	 			hw)
+f(;𝛺,𝛥) = let
+	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ, 𝑡ᵒᶠᶠₘₐₓ,𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ,𝑡ₘₐₓ) = get_hw_data(hw)
+	evf(;𝛺, 𝛥,
+	 	Ω_𝑡ᵒⁿ=_Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ=𝑡ᵒᶠᶠₘₐₓ,
+	 	Δ_𝑡ᵒⁿ=_Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ=𝑡ᵒᶠᶠₘₐₓ,
+	 	𝑇=𝑡ₘₐₓ,
+	 	hw)
+end
+#	 	Ω_𝑡ᵒⁿ=_Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ=_Ω_𝑡ᵒᶠᶠ,
+#	 	Δ_𝑡ᵒⁿ=_Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ=_Δ_𝑡ᵒᶠᶠ,
+#	 	𝑇=_𝑇,
 
 # ╔═╡ fca03244-1760-40c0-9857-e021a6f18a0d
-(;𝛺ₘₐₓ, 𝛺ᵣₑₛ,  𝛥ₘₐₓ, 𝛥ᵣₑₛ,) = hw ;
+
 
 # ╔═╡ 906adfb8-ef2d-40fa-ad27-f5dbf80169c2
-let 𝛥 = (0//1)/μs
+let
+	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ) = get_hw_data(hw)
+	𝛥 = -10𝛥ᵣₑₛ
 	scatter( 𝛺 -> f(;𝛺,𝛥)|>ℜ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
@@ -524,9 +610,9 @@ version = "0.1.5"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "e1e2d57684761700d214c5310ce5c0f2ee33500d"
+git-tree-sha1 = "54ebdb555814381d2711420736d9504740af2346"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.17"
+version = "0.1.18"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
@@ -1483,9 +1569,15 @@ version = "1.4.1+0"
 # ╟─b427083c-7427-4edc-8aa4-be846d0ce030
 # ╟─9de31196-d3d7-11ed-335a-9149427b52e9
 # ╟─c80fe404-b246-490f-a959-00243c6ae7fc
-# ╠═3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
-# ╠═3f33c55e-a27c-41bf-8034-683c1ebb0ab0
+# ╟─3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
+# ╟─3f33c55e-a27c-41bf-8034-683c1ebb0ab0
 # ╠═e8d2070b-0754-4572-b87a-96cb50e95992
+# ╟─002084ea-526e-4f86-9450-50153dbdc0b6
+# ╠═181e0f89-e4ae-4c5f-9f37-8b0a7f22bd1e
+# ╠═c8f7abbc-16c4-46d8-89a6-145599f68e49
+# ╟─fb7b9e47-d573-46c3-ad98-8ab8e88ed64f
+# ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
+# ╟─48eafe3d-2e42-42fc-bc5f-578e0fd83ab3
 # ╟─af4df139-800a-4518-93ba-04cda2e58f57
 # ╟─4429a694-e1b5-4426-af51-ac725fdebeb2
 # ╟─c8b09c0f-cf6f-48d5-94e9-a75c3557ef33
@@ -1501,7 +1593,6 @@ version = "1.4.1+0"
 # ╟─e8063849-8a09-4864-a1c1-748d78fbd9f3
 # ╟─08969ad5-2b70-448b-8358-98512218fff5
 # ╟─7ad2b6e2-968e-4c60-a571-591330104703
-# ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
 # ╠═2533daf8-1155-4d87-aa33-702315b31d4d
 # ╠═fca03244-1760-40c0-9857-e021a6f18a0d
 # ╠═906adfb8-ef2d-40fa-ad27-f5dbf80169c2
