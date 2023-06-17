@@ -19,9 +19,9 @@ Exports:
   * Function
     `default_HW_Descr(; ℤ=Int128) :: HW_Descr{Rational{ℤ}}`
   * Function
-    `fileread_HW_Descr( `*select*` ; filename ::String, ℤ=Int128) ::HW_Descr{Rational{ℤ}}`
+    `fileread_HW_Descr( `*FileType*` ; filename ::String, ℤ=Int128) ::HW_Descr{Rational{ℤ}}`
 
-The types used in "*select*" are not exported.  They are:
+The argument "*FileType*" is a type.  The type constants are not exported, and they are:
 
   * `HW_AWS_QuEra`
   * and that's it for now.
@@ -30,7 +30,7 @@ Both `default_HW_Descr()` and `fileread_HW_Descr(HW_AWS_QuEra,...)` accept the f
 keyword arguments:
 
   * `Ω_downslew_factor`
-  * `Δ_downslew_factor
+  * `Δ_downslew_factor`
 both of type rational.
 
 """

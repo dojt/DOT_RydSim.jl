@@ -5,11 +5,17 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 
 Time goes up!
 
+
+####  **v0.1.18**
+
+* Rotating-Wave-Approx breakdown is now thrown as `Ctrl_Exception`
+* Improved docs in `HW_Descriptions`
+
+
 ####  **v0.1.17**
 
 * Added `JET.jl` in tests
 * Bug fix
-
 
 ####  **v0.1.16**
 
