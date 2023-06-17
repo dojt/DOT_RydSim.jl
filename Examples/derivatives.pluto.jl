@@ -61,31 +61,60 @@ begin
 	using DOT_NiceMath.NumbersF64
 
 	using DOT_RydSim
+	using DOT_RydSim: Rad_per_μs_t
 
 	md"""
 	Loading packages `DOT_NiceMath` (for things such as ℝ and ⋅) and `DOT_RydSim`, the work horse.
 	"""
 end
 
-# ╔═╡ 3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
-begin
-	using DOT_RydSim.HW_Descriptions: HW_Descr, default_HW_Descr
+# ╔═╡ 3f33c55e-a27c-41bf-8034-683c1ebb0ab0
+let
 
-	md"""
-	## 1. Fix a hardware description
+	using DOT_RydSim.HW_Descriptions: HW_Descr,
+										default_HW_Descr,
+										fileread_HW_Descr,
+										HW_AWS_QuEra
 
-	We load the default hardware description that comes with the `DOT_RydSim` package, adding some "creativity" by allowing downward slew rates to be from the upward slew rate.
-	"""	
+
+	function load_hw(filename ::String
+					;
+					Ω_downslew_factor = 1//1,
+					Δ_downslew_factor = 1//1              ) ::HW_Descr{ℚ}
+
+		return fileread_HW_Descr(HW_AWS_QuEra
+								;   filename,
+									ℤ,
+									Ω_downslew_factor,
+									Δ_downslew_factor )
+	end
+	
+	function load_hw(select ::Symbol =:default
+					;
+					Ω_downslew_factor = 1//1,
+					Δ_downslew_factor = 1//1              ) ::HW_Descr{ℚ}
+
+		return default_HW_Descr(;
+								ℤ,
+								Ω_downslew_factor,
+								Δ_downslew_factor)
+	end
+
+	load_hw
 end
-
-# ╔═╡ 52094ee0-6e15-48be-9c41-9e8d244b1cad
-using Enzyme
 
 # ╔═╡ 6ff539d6-f1b8-4872-b61f-c4d3c7ac53bc
 md"""
 # Evolutions
 
 Demonstrate pulse shapes and time evolution.
+"""
+
+# ╔═╡ 3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
+md"""
+## 1. Fix a hardware description
+
+We load the default hardware description that comes with the `DOT_RydSim` package, adding some "creativity" by allowing downward slew rates to be from the upward slew rate.
 """
 
 # ╔═╡ e8d2070b-0754-4572-b87a-96cb50e95992
@@ -263,41 +292,87 @@ begin
 end
 
 # ╔═╡ d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
-let
+function evf( ; 𝛺 ::Rad_per_μs_t{ℚ}, 𝛥 ::Rad_per_μs_t{ℚ},
+				Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ,
+				Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ,
+				𝑇,
+				hw) ::Union{ℂ,Missing}
 	( ; 𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ,
 		𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
 		𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ                               ) = hw
 
-	pΩ = Pulse__Ω_BangBang{ℚ,ℝ}( _Ω_𝑡ᵒⁿ, _Ω_𝑡ᵒᶠᶠ, _𝑇, _Ω_𝛺_𝑡𝑎𝑟𝑔𝑒𝑡
-						;   𝛺ₘₐₓ, 𝛺ᵣₑₛ,
-							𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-							φᵣₑₛ,
-							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-	DOT_RydSim._check(pΩ)
+	pΩ = nothing; pΔ = nothing
+	try
+		pΩ = Pulse__Ω_BangBang{ℚ,ℝ}(Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ, 𝑇, 𝛺
+								;   𝛺ₘₐₓ, 𝛺ᵣₑₛ,
+									𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+									φᵣₑₛ,
+									𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+		DOT_RydSim._check(pΩ)
 
-	pΔ = Pulse__Δ_BangBang{ℚ}( _Δ_𝑡ᵒⁿ, _Δ_𝑡ᵒᶠᶠ, _𝑇, _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡
-						;   𝛥ₘₐₓ, 𝛥ᵣₑₛ,
-							𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-	DOT_RydSim._check(pΔ)
+		pΔ = Pulse__Δ_BangBang{ℚ}(  Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ, 𝑇, 𝛥
+								;   𝛥ₘₐₓ, 𝛥ᵣₑₛ,
+									𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+									𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+		DOT_RydSim._check(pΔ)
+	catch
+		return missing
+	end
+
+	ψᵤₛₑ = copy(ψ)
 
 
-	ψₒᵣᵢ = copy(ψ)
+	#@time \
+	schröd!(  ψᵤₛₑ, ℝ(_𝑇)
+				;   Ω = pΩ,
+					Δ = pΔ,
+					R,
+					ε=10^LOGε )
 
-	@time schröd!(ψ, ℝ(_𝑇)
-				;
-				Ω = pΩ,
-				Δ = pΔ,
-				R,
-				ε=10^LOGε )
+	return ψ' ⋅ ψᵤₛₑ
+end
 
-	ψₒᵣᵢ' ⋅ ψ
+# ╔═╡ 2533daf8-1155-4d87-aa33-702315b31d4d
+f(;𝛺,𝛥) = evf(;𝛺, 𝛥,
+	 			Ω_𝑡ᵒⁿ=_Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ=_Ω_𝑡ᵒᶠᶠ,
+	 			Δ_𝑡ᵒⁿ=_Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ=_Δ_𝑡ᵒᶠᶠ,
+	 			𝑇=_𝑇,
+	 			hw)
+
+# ╔═╡ fca03244-1760-40c0-9857-e021a6f18a0d
+(;𝛺ₘₐₓ, 𝛺ᵣₑₛ,  𝛥ₘₐₓ, 𝛥ᵣₑₛ,) = hw ;
+
+# ╔═╡ 906adfb8-ef2d-40fa-ad27-f5dbf80169c2
+let 𝛥 = (0//1)/μs
+	scatter( 𝛺 -> f(;𝛺,𝛥)|>ℜ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
+			; label="",
+			markersize=0.5, markerstrokewidth=0,
+			xaxis="𝛺")
+	scatter!(𝛺 -> f(;𝛺,𝛥)|>ℑ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
+			; label="",
+			markersize=0.5, markerstrokewidth=0,
+			xaxis="𝛺")
+end
+
+# ╔═╡ c8e56911-9a68-47f1-a129-45042318ce7a
+let 𝛺 = -10𝛺ᵣₑₛ
+	scatter( 𝛥 -> f(;𝛥, 𝛺)|>ℜ , -𝛥ₘₐₓ: 100001𝛥ᵣₑₛ :+𝛥ₘₐₓ
+			; label="",
+			markersize=0.5, markerstrokewidth=0,
+			xaxis="𝛥")
+	scatter!(𝛥 -> f(;𝛥, 𝛺)|>ℑ , -𝛥ₘₐₓ: 100001𝛥ᵣₑₛ :+𝛥ₘₐₓ
+			; label="",
+			markersize=0.5, markerstrokewidth=0,
+			xaxis="𝛥")
 end
 
 # ╔═╡ 4a6aaf05-e85c-4f42-820e-3a0226a721a6
 md"""
 ## 4. Let's derive!
 """
+
+# ╔═╡ bb1b1eaf-593d-455b-b588-4296ac46ad99
+error
 
 # ╔═╡ 5a3bfcd7-395f-4401-ad81-322bba6f4a79
 md"""
@@ -312,7 +387,6 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 DOT_NiceMath = "3e56a413-cb61-4004-9b36-fbc90ffc4c6e"
 DOT_RydSim = "16c21e78-c204-4711-8e6d-a01104899bbe"
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
@@ -324,7 +398,6 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 [compat]
 DOT_NiceMath = "~0.1.3"
 DOT_RydSim = "~0.1.1"
-Enzyme = "~0.11.1"
 PlotlyBase = "~0.8.19"
 PlotlyKaleido = "~1.0.0"
 Plots = "~1.38.9"
@@ -338,25 +411,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.1"
 manifest_format = "2.0"
-project_hash = "d485e3936acc5ca35b842a4a1e61b88d77eb513a"
+project_hash = "b6fa1c0cf5719622e9a386ef4cc6ad0391c740b9"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
 git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
 uuid = "6e696c72-6542-2067-7265-42206c756150"
 version = "1.1.4"
-
-[[deps.Adapt]]
-deps = ["LinearAlgebra", "Requires"]
-git-tree-sha1 = "76289dc51920fdc6e0013c872ba9551d54961c24"
-uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "3.6.2"
-
-    [deps.Adapt.extensions]
-    AdaptStaticArraysExt = "StaticArrays"
-
-    [deps.Adapt.weakdeps]
-    StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -378,11 +439,6 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "19a35467a82e236ff51bc17a3a44b69ef35185a2"
 uuid = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
 version = "1.0.8+0"
-
-[[deps.CEnum]]
-git-tree-sha1 = "eb4cb44a499229b3b8426dcfb5dd85333951ff90"
-uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
-version = "0.4.2"
 
 [[deps.Cairo_jll]]
 deps = ["Artifacts", "Bzip2_jll", "CompilerSupportLibraries_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
@@ -504,34 +560,11 @@ deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 version = "1.6.0"
 
-[[deps.Enzyme]]
-deps = ["CEnum", "EnzymeCore", "Enzyme_jll", "GPUCompiler", "LLVM", "Libdl", "LinearAlgebra", "ObjectFile", "Printf", "Random"]
-git-tree-sha1 = "4478f8bf24785d9eabe09044549b0e81b9e12d68"
-uuid = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-version = "0.11.1"
-
-[[deps.EnzymeCore]]
-deps = ["Adapt"]
-git-tree-sha1 = "d0840cfff51e34729d20fd7d0a13938dc983878b"
-uuid = "f151be2c-9106-41f4-ab19-57ee4f262869"
-version = "0.3.0"
-
-[[deps.Enzyme_jll]]
-deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "TOML"]
-git-tree-sha1 = "b0f72433c4679db4df05c999f200d60cb78d1a27"
-uuid = "7cc45869-7501-5eee-bdea-0790c847d4ef"
-version = "0.0.57+0"
-
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "bad72f730e9e91c08d9427d5e8db95478a3c323d"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
 version = "2.4.8+0"
-
-[[deps.ExprTools]]
-git-tree-sha1 = "c1d06d129da9f55715c6c212866f5b1bddc5fa00"
-uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
-version = "0.1.9"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -583,12 +616,6 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Libglvnd_jll", "Pkg", "Xorg_libXcu
 git-tree-sha1 = "d972031d28c8c8d9d7b41a536ad7bb0c2579caca"
 uuid = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
 version = "3.3.8+0"
-
-[[deps.GPUCompiler]]
-deps = ["ExprTools", "InteractiveUtils", "LLVM", "Libdl", "Logging", "Scratch", "TimerOutputs", "UUIDs"]
-git-tree-sha1 = "5737dc242dadd392d934ee330c69ceff47f0259c"
-uuid = "61eb1bfa-7361-4325-ad38-22787b887f55"
-version = "0.19.4"
 
 [[deps.GR]]
 deps = ["Artifacts", "Base64", "DelimitedFiles", "Downloads", "GR_jll", "HTTP", "JSON", "Libdl", "LinearAlgebra", "Pkg", "Preferences", "Printf", "Random", "Serialization", "Sockets", "TOML", "Tar", "Test", "UUIDs", "p7zip_jll"]
@@ -706,18 +733,6 @@ git-tree-sha1 = "bf36f528eec6634efc60d7ec062008f171071434"
 uuid = "88015f11-f218-50d7-93a8-a6af411a945d"
 version = "3.0.0+1"
 
-[[deps.LLVM]]
-deps = ["CEnum", "LLVMExtra_jll", "Libdl", "Printf", "Unicode"]
-git-tree-sha1 = "5007c1421563108110bbd57f63d8ad4565808818"
-uuid = "929cbde3-209d-540e-8aea-75f648917ca0"
-version = "5.2.0"
-
-[[deps.LLVMExtra_jll]]
-deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "TOML"]
-git-tree-sha1 = "1222116d7313cdefecf3d45a2bc1a89c4e7c9217"
-uuid = "dad2f222-ce93-54a1-a47d-0025e8a3acab"
-version = "0.0.22+0"
-
 [[deps.LLVMOpenMP_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "f689897ccbe049adb19a065c495e75f372ecd42b"
@@ -748,10 +763,6 @@ version = "0.16.1"
     [deps.Latexify.weakdeps]
     DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
     SymEngine = "123dc426-2d89-5057-bbad-38513e3affd8"
-
-[[deps.LazyArtifacts]]
-deps = ["Artifacts", "Pkg"]
-uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -905,12 +916,6 @@ version = "1.0.2"
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
-
-[[deps.ObjectFile]]
-deps = ["Reexport", "StructIO"]
-git-tree-sha1 = "55ce61d43409b1fb0279d1781bf3b0f22c83ab3b"
-uuid = "d8793406-e978-5875-9003-1fc021f44a92"
-version = "0.3.7"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1128,9 +1133,9 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [[deps.SortingAlgorithms]]
 deps = ["DataStructures"]
-git-tree-sha1 = "a4ada03f999bd01b3a25dcaa30b2d929fe537e00"
+git-tree-sha1 = "c60ec5c62180f27efea3ba2908480f8055e17cee"
 uuid = "a2af1166-a08f-5f64-846c-94a0d3cef48c"
-version = "1.1.0"
+version = "1.1.1"
 
 [[deps.SparseArrays]]
 deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
@@ -1165,12 +1170,6 @@ git-tree-sha1 = "75ebe04c5bed70b91614d684259b661c9e6274a4"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 version = "0.34.0"
 
-[[deps.StructIO]]
-deps = ["Test"]
-git-tree-sha1 = "010dc73c7146869c042b49adcdb6bf528c12e859"
-uuid = "53d494c1-5632-5724-8f4c-31dff12d585f"
-version = "0.3.0"
-
 [[deps.SuiteSparse_jll]]
 deps = ["Artifacts", "Libdl", "Pkg", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
@@ -1195,12 +1194,6 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[deps.TimerOutputs]]
-deps = ["ExprTools", "Printf"]
-git-tree-sha1 = "f548a9e9c490030e545f72074a41edfd0e5bcdd7"
-uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
-version = "0.5.23"
 
 [[deps.TranscodingStreams]]
 deps = ["Random", "Test"]
@@ -1490,12 +1483,13 @@ version = "1.4.1+0"
 # ╟─b427083c-7427-4edc-8aa4-be846d0ce030
 # ╟─9de31196-d3d7-11ed-335a-9149427b52e9
 # ╟─c80fe404-b246-490f-a959-00243c6ae7fc
-# ╟─3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
-# ╟─e8d2070b-0754-4572-b87a-96cb50e95992
+# ╠═3ef06dd5-a2d3-4ea3-94ab-34fb7051b8ed
+# ╠═3f33c55e-a27c-41bf-8034-683c1ebb0ab0
+# ╠═e8d2070b-0754-4572-b87a-96cb50e95992
 # ╟─af4df139-800a-4518-93ba-04cda2e58f57
-# ╠═4429a694-e1b5-4426-af51-ac725fdebeb2
+# ╟─4429a694-e1b5-4426-af51-ac725fdebeb2
 # ╟─c8b09c0f-cf6f-48d5-94e9-a75c3557ef33
-# ╠═5c48717b-3520-4901-8b2b-4bdc850b1c60
+# ╟─5c48717b-3520-4901-8b2b-4bdc850b1c60
 # ╟─83ee857d-95a0-439d-bd3b-5d5dc63e2b36
 # ╟─7c2a54f5-d0c4-47d6-a750-f3f75195bc9b
 # ╟─c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
@@ -1507,9 +1501,13 @@ version = "1.4.1+0"
 # ╟─e8063849-8a09-4864-a1c1-748d78fbd9f3
 # ╟─08969ad5-2b70-448b-8358-98512218fff5
 # ╟─7ad2b6e2-968e-4c60-a571-591330104703
-# ╟─d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
+# ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
+# ╠═2533daf8-1155-4d87-aa33-702315b31d4d
+# ╠═fca03244-1760-40c0-9857-e021a6f18a0d
+# ╠═906adfb8-ef2d-40fa-ad27-f5dbf80169c2
+# ╠═c8e56911-9a68-47f1-a129-45042318ce7a
 # ╟─4a6aaf05-e85c-4f42-820e-3a0226a721a6
-# ╠═52094ee0-6e15-48be-9c41-9e8d244b1cad
+# ╠═bb1b1eaf-593d-455b-b588-4296ac46ad99
 # ╟─5a3bfcd7-395f-4401-ad81-322bba6f4a79
 # ╠═f1a3fa1b-90bf-4fe0-96d6-ebdb72ad9f04
 # ╟─00000000-0000-0000-0000-000000000001
