@@ -49,6 +49,8 @@ begin
 	using Unitful: 	Time, Frequency,
 					μs
 
+	using LinearAlgebra: eigvals
+
 	using PlutoUI  # Table of contents, and user interaction
 	TableOfContents()
 end
@@ -157,7 +159,7 @@ let
 			}
 
 	@doc raw"""
-	Function `get_hw_data( ::HW_Descr) ::NamedTuple`
+	Function `get_hw_data(::HW_Descr) ::NamedTuple`
 
 	Returns a named tuple with the following fields, all of
 	unitful rational number types:
@@ -167,7 +169,7 @@ let
 	* `𝑡ₘₐₓ`           — max total evolution time
 	* `𝑡ᵒᶠᶠₘₐₓ`        — largest switch-off time which allows full range of 𝛺 and 𝛥
 	* `𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ`    — smallest duration ``t^{\text{off}}-t^{\text{on}}``
-	  which allows full range of  𝛺 and 𝛥
+	  which allows full range of 𝛺 and 𝛥
 	"""
 	function get_hw_data(hw ::HW_Descr{ℚ}) ::_NT
 
@@ -196,8 +198,32 @@ let
 	get_hw_data
 end
 
-# ╔═╡ c8f7abbc-16c4-46d8-89a6-145599f68e49
-get_hw_data(hw)
+# ╔═╡ df2ad0bf-2182-40dc-86a6-8debd7317ae6
+@doc raw"""
+Function `get_hw_𝑡ᵒᶠᶠ⁻ᵈⁱᶠᶠ𝛥𝛺(hw::HW_Descr ;  𝛺 =hw.𝛺ₘₐₓ, 𝛥 =hw.𝛥ₘₐₓ) `
+
+𝛺-pulse must end this quantity *later* than 𝛥-pulse in order not to break the RWA with max 𝛺,𝛥
+"""
+function
+get_hw_𝑡ᵒᶠᶠ⁻ᵈⁱᶠᶠ𝛥𝛺( hw ::HW_Descr{ℚ}
+					;
+					𝛺 :: Rad_per_μs_t{ℚ} = hw.𝛺ₘₐₓ,
+					𝛥 :: Rad_per_μs_t{ℚ} = hw.𝛥ₘₐₓ ) ::μs_t{ℚ}
+
+	( ; 𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ,
+		𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+		𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ                               ) = hw
+
+	𝛺 = abs(𝛺)
+	𝛥 = abs(𝛥)
+	@assert 𝛺 > 0/μs
+
+	𝛺_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒 = 𝛺 / 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+	𝛥_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒 = 𝛥 / 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+
+	return δround_up(  abs(𝛥_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒 - 𝛺_𝑑𝑜𝑤𝑛𝑡𝑖𝑚𝑒)
+					; 𝛿=𝑡ᵣₑₛ)
+end
 
 # ╔═╡ fb7b9e47-d573-46c3-ad98-8ab8e88ed64f
 md"""
@@ -206,28 +232,54 @@ md"""
 Define function `evf()`
 """
 
-# ╔═╡ 48eafe3d-2e42-42fc-bc5f-578e0fd83ab3
+# ╔═╡ 60c0cc75-cf92-4c8e-9f47-2adf51c25c39
 md"""
-# Old Shit
+## 4. Some experimentery
 """
 
-# ╔═╡ af4df139-800a-4518-93ba-04cda2e58f57
+# ╔═╡ f3e0b461-9456-47d3-ba0f-495ac2d6bae4
 md"""
-## 2. Find shifts
+* Number of atoms: $(  @bind N_ATOMS NumberField(1:8)  )
+* $(  @bind _NEW_R Button("New R")  )
+  * Stddev: $(  @bind R_STDDEV NumberField(0:1_000_000;default=64) )
+* $(  @bind _NEW_ψ Button("New ψ")  )
+* ``\log_{10}(\varepsilon) =`` $( @bind LOGε Slider(-50.0: 0.1 :0.0; default=-1.0) )
+"""
 
-Variants of shift rules
+# ╔═╡ adedaf55-67a9-4b72-ad1d-672a751d27eb
+md"""
+#### **SOMETHING IS WRONG WITH Δ** — see stddev=0
+"""
 
-* _Variant 1:_ Use raw ``\Omega`` values
-* _Variant 2:_ Use integrated values
-* _Variant 3:_ Machine-learn stuff -- next paper 😞
+# ╔═╡ e8063849-8a09-4864-a1c1-748d78fbd9f3
+md"""
+``\varepsilon = `` $( 10^LOGε )
+"""
 
-In Variant 1, we pass a pulse envelope data structure and hope to get a derivative of the peak-Ω value.
+# ╔═╡ 08969ad5-2b70-448b-8358-98512218fff5
+begin
+	_NEW_R
+	R = let A = randn(ℂ,2^N_ATOMS,2^N_ATOMS) ; Hermitian( (A+A')⋅R_STDDEV/2 ) end
 
-In Variant 2, we pass a derived parameter ``x_0 = \int \Omega(t)\,dt``, and the pulse envelopes are constructed based on inverting that function, see notes.
+	println("λ⃗ = ", eigvals(R) )
+	md"""
+	Making R....
+	"""
+end
 
-In any case, the shifts will actually depend on the point where the derivative is going to be taken.  This is done to maximize the information gain.
+# ╔═╡ 7ad2b6e2-968e-4c60-a571-591330104703
+begin
+	_NEW_ψ
+	ψ = randn(ℂ,2^N_ATOMS) |> normalize
 
-### 2.1. Variant 1: Raw Ω
+	md"""
+	Making a ψ.
+	"""
+end
+
+# ╔═╡ 4a6aaf05-e85c-4f42-820e-3a0226a721a6
+md"""
+## 5. Let's derive!
 """
 
 # ╔═╡ 4429a694-e1b5-4426-af51-ac725fdebeb2
@@ -254,6 +306,11 @@ md"""
 ---
 """
 
+# ╔═╡ 48eafe3d-2e42-42fc-bc5f-578e0fd83ab3
+md"""
+# Old Shit
+"""
+
 # ╔═╡ 5c48717b-3520-4901-8b2b-4bdc850b1c60
 md"""
 ## X. Plot some pulse shapes
@@ -274,109 +331,6 @@ md"""
   * 𝛺\_𝑡𝑎𝑟𝑔𝑒𝑡 = $( _Ω_𝛺_𝑡𝑎𝑟𝑔𝑒𝑡   = _Ω_Ω_target⋅hw.𝛺ᵣₑₛ )
   * 𝑇         = $( _𝑇          = hw.𝑡ₘₐₓ             )
 """
-
-# ╔═╡ c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
-let plt = plot()
-	(;𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ, 𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ) = hw
-
-	p = Pulse__Ω_BangBang{ℚ,ℝ}( _Ω_𝑡ᵒⁿ, _Ω_𝑡ᵒᶠᶠ, _𝑇, _Ω_𝛺_𝑡𝑎𝑟𝑔𝑒𝑡
-						;   𝛺ₘₐₓ, 𝛺ᵣₑₛ,
-							𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-							φᵣₑₛ,
-							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-	DOT_RydSim._check(p)
-
-	plot!(plt,
-			𝑡 -> p(𝑡) , 0.0μs: 0.0001μs :_𝑇,
-			; label="𝛺",
-			color=:blue)
-
-	(;x⃗,y⃗) = plotpulse(p)
-	scatter!(plt,
-			x⃗, y⃗
-			; label="",
-			color=:blue,
-			markerstrokewidth=0)
-	println("Phase = $(phase(p))")
-	plt
-end
-
-# ╔═╡ 68087630-b9dc-474e-9cd4-28d2a8f306de
-md"""
-### Δ-pulse shape data
-* 𝑡ᵒⁿ:      $( @bind _Δ_tᵒⁿ       Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
-* 𝑡ᵒᶠᶠ:     $( @bind _Δ_tᵒᶠᶠ      Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; default=100, max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
-* Target 𝛥: $( @bind _Δ_Δ_target  Slider(-NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ) : +NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ); default=0,max_steps=1+2Int(NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ)) ) )
-"""
-
-# ╔═╡ 509423cd-07f2-48b4-a638-89bbed48cfc0
-md"""
-  * 𝑡ᵒⁿ       = $( _Δ_𝑡ᵒⁿ        = _Δ_tᵒⁿ     ⋅hw.𝑡ᵣₑₛ )
-  * 𝑡ᵒᶠᶠ      = $( _Δ_𝑡ᵒᶠᶠ       = _Δ_tᵒᶠᶠ    ⋅hw.𝑡ᵣₑₛ )
-  * 𝛥\_𝑡𝑎𝑟𝑔𝑒𝑡 = $( _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡   = _Δ_Δ_target⋅hw.𝛥ᵣₑₛ )
-"""
-
-# ╔═╡ 307128bc-5929-4ed0-8214-7a44b0c51c54
-let plt = plot()
-	(;𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, 𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ) = hw
-
-	p = Pulse__Δ_BangBang{ℚ}( _Δ_𝑡ᵒⁿ, _Δ_𝑡ᵒᶠᶠ, _𝑇, _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡
-						;   𝛥ₘₐₓ, 𝛥ᵣₑₛ,
-							𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
-							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
-	DOT_RydSim._check(p)
-
-	plot!(plt,
-			𝑡 -> p(𝑡) , 0.0μs: 0.0001μs :_𝑇,
-			; label="𝛥",
-			color=:blue)
-
-	(;x⃗,y⃗) = plotpulse(p)
-	scatter!(plt,
-			x⃗, y⃗
-			; label="",
-			color=:blue,
-			markerstrokewidth=0)
-	plt
-end
-
-# ╔═╡ 60c0cc75-cf92-4c8e-9f47-2adf51c25c39
-md"""
-## 3. One simple evolution
-"""
-
-# ╔═╡ f3e0b461-9456-47d3-ba0f-495ac2d6bae4
-md"""
-* Number of atoms: $(  @bind N_ATOMS NumberField(1:8)  )
-* $(  @bind _NEW_R Button("New R")  )
-* $(  @bind _NEW_ψ Button("New ψ")  )
-* ``\log_{10}(\varepsilon) =`` $( @bind LOGε Slider(-50.0: 0.1 :0.0; default=-1.0) )
-"""
-
-# ╔═╡ e8063849-8a09-4864-a1c1-748d78fbd9f3
-md"""
-``\varepsilon = `` $( 10^LOGε )
-"""
-
-# ╔═╡ 08969ad5-2b70-448b-8358-98512218fff5
-begin
-	_NEW_R
-	R = let A = randn(ℂ,2^N_ATOMS,2^N_ATOMS) ; Hermitian( (A+A')/2 ) end
-
-	md"""
-	Making R.
-	"""
-end
-
-# ╔═╡ 7ad2b6e2-968e-4c60-a571-591330104703
-begin
-	_NEW_ψ
-	ψ = randn(ℂ,2^N_ATOMS) |> normalize
-
-	md"""
-	Making a ψ.
-	"""
-end
 
 # ╔═╡ d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
 function evf( ; 𝛺 ::Rad_per_μs_t{ℚ}, 𝛥 ::Rad_per_μs_t{ℚ},
@@ -415,55 +369,119 @@ function evf( ; 𝛺 ::Rad_per_μs_t{ℚ}, 𝛥 ::Rad_per_μs_t{ℚ},
 end
 
 # ╔═╡ 2533daf8-1155-4d87-aa33-702315b31d4d
-f(;𝛺,𝛥) = let
+begin
+evf_Ω(𝛺;𝛥) = let
 	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ, 𝑡ᵒᶠᶠₘₐₓ,𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ, 𝑡ᵣₑₛ,𝑡ₘₐₓ) = get_hw_data(hw)
 	(;𝛥𝑡ₘᵢₙ) = hw
 	evf(;𝛺, 𝛥,
 	 	Ω_𝑡ᵒⁿ=𝛥𝑡ₘᵢₙ, Ω_𝑡ᵒᶠᶠ=𝑡ᵒᶠᶠₘₐₓ,
+	 	Δ_𝑡ᵒⁿ=𝛥𝑡ₘᵢₙ, Δ_𝑡ᵒᶠᶠ=𝑡ᵒᶠᶠₘₐₓ-get_hw_𝑡ᵒᶠᶠ⁻ᵈⁱᶠᶠ𝛥𝛺(hw;𝛺=𝛺ₘₐₓ, 𝛥),
+	 	𝑇=𝑡ₘₐₓ,
+	 	hw)
+end
+evf_Δ(𝛥;𝛺) = let
+	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ, 𝑡ᵒᶠᶠₘₐₓ,𝑡ᵒⁿ_𝑡ᵒᶠᶠₘᵢₙ, 𝑡ᵣₑₛ,𝑡ₘₐₓ) = get_hw_data(hw)
+	(;𝛥𝑡ₘᵢₙ) = hw
+	evf(;𝛺, 𝛥,
+	 	Ω_𝑡ᵒⁿ=𝛥𝑡ₘᵢₙ, Ω_𝑡ᵒᶠᶠ=𝑡ᵒᶠᶠₘₐₓ+get_hw_𝑡ᵒᶠᶠ⁻ᵈⁱᶠᶠ𝛥𝛺(hw;𝛺, 𝛥=𝛥ₘₐₓ),
 	 	Δ_𝑡ᵒⁿ=𝛥𝑡ₘᵢₙ, Δ_𝑡ᵒᶠᶠ=𝑡ᵒᶠᶠₘₐₓ,
 	 	𝑇=𝑡ₘₐₓ,
 	 	hw)
 end
-#	 	Ω_𝑡ᵒⁿ=_Ω_𝑡ᵒⁿ, Ω_𝑡ᵒᶠᶠ=_Ω_𝑡ᵒᶠᶠ,
-#	 	Δ_𝑡ᵒⁿ=_Δ_𝑡ᵒⁿ, Δ_𝑡ᵒᶠᶠ=_Δ_𝑡ᵒᶠᶠ,
-#	 	𝑇=_𝑇,
-
-# ╔═╡ fca03244-1760-40c0-9857-e021a6f18a0d
-
+end
 
 # ╔═╡ 906adfb8-ef2d-40fa-ad27-f5dbf80169c2
 let
 	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ) = get_hw_data(hw)
-	𝛥 = -10𝛥ᵣₑₛ
-	scatter( 𝛺 -> f(;𝛺,𝛥)|>ℜ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
+	𝛥 = 𝛥ᵣₑₛ #-𝛥ₘₐₓ/2
+	scatter( 𝛺 -> evf_Ω(𝛺;𝛥)|>ℜ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
 			xaxis="𝛺")
-	scatter!(𝛺 -> f(;𝛺,𝛥)|>ℑ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
+	scatter!(𝛺 -> evf_Ω(𝛺;𝛥)|>ℑ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
 			xaxis="𝛺")
 end
 
 # ╔═╡ c8e56911-9a68-47f1-a129-45042318ce7a
-let 𝛺 = -10𝛺ᵣₑₛ
-	scatter( 𝛥 -> f(;𝛥, 𝛺)|>ℜ , -𝛥ₘₐₓ: 100001𝛥ᵣₑₛ :+𝛥ₘₐₓ
+let
+	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ) = get_hw_data(hw)
+	𝛺 = -𝛺ₘₐₓ/100
+	scatter( 𝛥 -> evf_Δ(𝛥; 𝛺)|>ℜ , -𝛥ₘₐₓ: 100001𝛥ᵣₑₛ :+𝛥ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
 			xaxis="𝛥")
-	scatter!(𝛥 -> f(;𝛥, 𝛺)|>ℑ , -𝛥ₘₐₓ: 100001𝛥ᵣₑₛ :+𝛥ₘₐₓ
+	scatter!(𝛥 -> evf_Δ(𝛥; 𝛺)|>ℑ , -𝛥ₘₐₓ: 100001𝛥ᵣₑₛ :+𝛥ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
 			xaxis="𝛥")
 end
 
-# ╔═╡ 4a6aaf05-e85c-4f42-820e-3a0226a721a6
+# ╔═╡ 68087630-b9dc-474e-9cd4-28d2a8f306de
 md"""
-## 4. Let's derive!
+### Δ-pulse shape data
+* 𝑡ᵒⁿ:      $( @bind _Δ_tᵒⁿ       Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
+* 𝑡ᵒᶠᶠ:     $( @bind _Δ_tᵒᶠᶠ      Slider(0 : NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ) ; default=100, max_steps=1+Int(NoUnits(hw.𝑡ₘₐₓ/hw.𝑡ᵣₑₛ)) ) )
+* Target 𝛥: $( @bind _Δ_Δ_target  Slider(-NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ) : +NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ); default=0,max_steps=1+2Int(NoUnits(hw.𝛥ₘₐₓ/hw.𝛥ᵣₑₛ)) ) )
 """
 
-# ╔═╡ bb1b1eaf-593d-455b-b588-4296ac46ad99
-error
+# ╔═╡ 509423cd-07f2-48b4-a638-89bbed48cfc0
+md"""
+  * 𝑡ᵒⁿ       = $( _Δ_𝑡ᵒⁿ        = _Δ_tᵒⁿ     ⋅hw.𝑡ᵣₑₛ )
+  * 𝑡ᵒᶠᶠ      = $( _Δ_𝑡ᵒᶠᶠ       = _Δ_tᵒᶠᶠ    ⋅hw.𝑡ᵣₑₛ )
+  * 𝛥\_𝑡𝑎𝑟𝑔𝑒𝑡 = $( _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡   = _Δ_Δ_target⋅hw.𝛥ᵣₑₛ )
+"""
+
+# ╔═╡ c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
+let plt = plot()
+	(;𝛺ₘₐₓ, 𝛺ᵣₑₛ, 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, φᵣₑₛ, 𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ) = hw
+
+	p = Pulse__Ω_BangBang{ℚ,ℝ}( _Ω_𝑡ᵒⁿ, _Ω_𝑡ᵒᶠᶠ, _𝑇, _Ω_𝛺_𝑡𝑎𝑟𝑔𝑒𝑡
+						;   𝛺ₘₐₓ, 𝛺ᵣₑₛ,
+							𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+							φᵣₑₛ,
+							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+	DOT_RydSim._check(p)
+
+	plot!(plt,
+			𝑡 -> p(𝑡) , 0.0μs: 0.0001μs :_𝑇,
+			; label="𝛺",
+			color=:blue)
+
+	(;x⃗,y⃗) = plotpulse(p)
+	scatter!(plt,
+			x⃗, y⃗
+			; label="",
+			color=:blue,
+			markerstrokewidth=0)
+	println("Phase = $(phase(p))")
+	plt
+end
+
+# ╔═╡ 307128bc-5929-4ed0-8214-7a44b0c51c54
+let plt = plot()
+	(;𝛥ₘₐₓ, 𝛥ᵣₑₛ, 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤, 𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ) = hw
+
+	p = Pulse__Δ_BangBang{ℚ}( _Δ_𝑡ᵒⁿ, _Δ_𝑡ᵒᶠᶠ, _𝑇, _Δ_𝛥_𝑡𝑎𝑟𝑔𝑒𝑡
+						;   𝛥ₘₐₓ, 𝛥ᵣₑₛ,
+							𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤, 𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤,
+							𝑡ₘₐₓ, 𝑡ᵣₑₛ, 𝛥𝑡ₘᵢₙ)
+	DOT_RydSim._check(p)
+
+	plot!(plt,
+			𝑡 -> p(𝑡) , 0.0μs: 0.0001μs :_𝑇,
+			; label="𝛥",
+			color=:blue)
+
+	(;x⃗,y⃗) = plotpulse(p)
+	scatter!(plt,
+			x⃗, y⃗
+			; label="",
+			color=:blue,
+			markerstrokewidth=0)
+	plt
+end
 
 # ╔═╡ 5a3bfcd7-395f-4401-ad81-322bba6f4a79
 md"""
@@ -615,9 +633,9 @@ version = "0.1.5"
 
 [[deps.DOT_RydSim]]
 deps = ["DOT_NiceMath", "JSON", "LinearAlgebra", "Logging", "Unitful"]
-git-tree-sha1 = "dbf70bd05720785a306aeca1bf0e9a650fbf2734"
+git-tree-sha1 = "2763d0ec96df0bc46517b9526ccfee5bd80dad60"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
-version = "0.1.21"
+version = "0.1.22"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
@@ -1579,31 +1597,29 @@ version = "1.4.1+0"
 # ╠═e8d2070b-0754-4572-b87a-96cb50e95992
 # ╟─002084ea-526e-4f86-9450-50153dbdc0b6
 # ╟─181e0f89-e4ae-4c5f-9f37-8b0a7f22bd1e
-# ╠═c8f7abbc-16c4-46d8-89a6-145599f68e49
+# ╟─df2ad0bf-2182-40dc-86a6-8debd7317ae6
 # ╟─fb7b9e47-d573-46c3-ad98-8ab8e88ed64f
-# ╠═d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
-# ╟─48eafe3d-2e42-42fc-bc5f-578e0fd83ab3
-# ╟─af4df139-800a-4518-93ba-04cda2e58f57
-# ╟─4429a694-e1b5-4426-af51-ac725fdebeb2
-# ╟─c8b09c0f-cf6f-48d5-94e9-a75c3557ef33
-# ╟─5c48717b-3520-4901-8b2b-4bdc850b1c60
-# ╟─83ee857d-95a0-439d-bd3b-5d5dc63e2b36
-# ╟─7c2a54f5-d0c4-47d6-a750-f3f75195bc9b
-# ╟─c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
-# ╟─68087630-b9dc-474e-9cd4-28d2a8f306de
-# ╟─509423cd-07f2-48b4-a638-89bbed48cfc0
-# ╟─307128bc-5929-4ed0-8214-7a44b0c51c54
+# ╟─d9e6cbc2-2761-47b8-bbe4-aafd4d60cf32
+# ╠═2533daf8-1155-4d87-aa33-702315b31d4d
 # ╟─60c0cc75-cf92-4c8e-9f47-2adf51c25c39
 # ╟─f3e0b461-9456-47d3-ba0f-495ac2d6bae4
+# ╠═adedaf55-67a9-4b72-ad1d-672a751d27eb
 # ╟─e8063849-8a09-4864-a1c1-748d78fbd9f3
 # ╟─08969ad5-2b70-448b-8358-98512218fff5
 # ╟─7ad2b6e2-968e-4c60-a571-591330104703
-# ╠═2533daf8-1155-4d87-aa33-702315b31d4d
-# ╠═fca03244-1760-40c0-9857-e021a6f18a0d
-# ╠═906adfb8-ef2d-40fa-ad27-f5dbf80169c2
-# ╠═c8e56911-9a68-47f1-a129-45042318ce7a
+# ╟─906adfb8-ef2d-40fa-ad27-f5dbf80169c2
+# ╟─c8e56911-9a68-47f1-a129-45042318ce7a
 # ╟─4a6aaf05-e85c-4f42-820e-3a0226a721a6
-# ╠═bb1b1eaf-593d-455b-b588-4296ac46ad99
+# ╟─4429a694-e1b5-4426-af51-ac725fdebeb2
+# ╟─c8b09c0f-cf6f-48d5-94e9-a75c3557ef33
+# ╟─48eafe3d-2e42-42fc-bc5f-578e0fd83ab3
+# ╟─5c48717b-3520-4901-8b2b-4bdc850b1c60
+# ╟─83ee857d-95a0-439d-bd3b-5d5dc63e2b36
+# ╟─7c2a54f5-d0c4-47d6-a750-f3f75195bc9b
+# ╟─68087630-b9dc-474e-9cd4-28d2a8f306de
+# ╟─509423cd-07f2-48b4-a638-89bbed48cfc0
+# ╟─c5a09605-b8e7-4a5c-8e54-2cf48b2b5a8f
+# ╟─307128bc-5929-4ed0-8214-7a44b0c51c54
 # ╟─5a3bfcd7-395f-4401-ad81-322bba6f4a79
 # ╠═f1a3fa1b-90bf-4fe0-96d6-ebdb72ad9f04
 # ╟─00000000-0000-0000-0000-000000000001
