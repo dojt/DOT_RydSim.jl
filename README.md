@@ -8,7 +8,7 @@ Time goes up!
 
 ####  **v0.1.22**
 
-* Fixed bug w/ 𝛥𝑡ₘᵢₙ
+* Fixed bug w/ γ=0 in `Pulse__Ω_BangBang`
 
 ####  **v0.1.21**
 
