@@ -6,6 +6,11 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.1.23**
+
+* More detailed error checks in pulse constructor
+
+
 ####  **v0.1.22**
 
 * Fixed bug w/ γ=0 in `Pulse__Ω_BangBang`

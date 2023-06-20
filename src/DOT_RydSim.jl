@@ -367,7 +367,9 @@ function Pulse__Δ_BangBang{ℚ}(𝑡ᵒⁿ      ::μs_t{ℚ},                  
 
 
 
-    0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇     || throw(ArgumentError("Need  0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇."))
+    0μs ≤ 𝑡ᵒⁿ                || throw(ArgumentError("Need  0μs ≤ 𝑡ᵒⁿ           ."))
+          𝑡ᵒⁿ < 𝑡ᵒᶠᶠ         || throw(ArgumentError("Need        𝑡ᵒⁿ < 𝑡ᵒᶠᶠ    ."))
+                𝑡ᵒᶠᶠ ≤ 𝑇     || throw(ArgumentError("Need              𝑡ᵒᶠᶠ ≤ 𝑇."))
 
     𝛥ₘₐₓ > 0/μs              || throw(ArgumentError("𝛥ₘₐₓ must be positive."))
     𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 > 0/μs^2    || throw(ArgumentError("Max slew rate 𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 must \
@@ -601,7 +603,9 @@ function Pulse__Ω_BangBang{ℚ,ℝ}(𝑡ᵒⁿ      ::μs_t{ℚ},              
 
     ℂ = Complex{ℝ}
 
-    0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇     || throw(ArgumentError("Need  0μs ≤ 𝑡ᵒⁿ < 𝑡ᵒᶠᶠ ≤ 𝑇."))
+    0μs ≤ 𝑡ᵒⁿ                || throw(ArgumentError("Need  0μs ≤ 𝑡ᵒⁿ           ."))
+          𝑡ᵒⁿ < 𝑡ᵒᶠᶠ         || throw(ArgumentError("Need        𝑡ᵒⁿ < 𝑡ᵒᶠᶠ    ."))
+                𝑡ᵒᶠᶠ ≤ 𝑇     || throw(ArgumentError("Need              𝑡ᵒᶠᶠ ≤ 𝑇."))
 
     𝛺ₘₐₓ > 0/μs              || throw(ArgumentError("𝛺ₘₐₓ must be positive."))
     𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 > 0/μs^2    || throw(ArgumentError("Max slew rate 𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤 must \
