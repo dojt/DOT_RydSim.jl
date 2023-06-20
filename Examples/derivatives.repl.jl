@@ -5,8 +5,7 @@ using DOT_NiceMath.NumbersF64
 
 
 using Unitful
-using Unitful: 	Time, Frequency,
-				μs
+using Unitful: 	Time, Frequency, μs
 
 using Plots
 plotly();
@@ -20,24 +19,25 @@ hw = load_hw(;  Ω_downslew_factor = 1//3,
 
 
 N_ATOMS  = 1
-R_STDDEV = 64
-LOGε     = -1.0
+R_STDDEV = 0#64
+ε        = 1e-1
 
+ϕ = randn(ℂ,2^N_ATOMS) |> normalize
 ψ = randn(ℂ,2^N_ATOMS) |> normalize
 
 R = let A = randn(ℂ,2^N_ATOMS,2^N_ATOMS) ; Hermitian( (A+A')⋅R_STDDEV/2 ) end
 
 println("λ⃗ = ", eigvals(R) )
 
-let
+plotΩ = let
     global hw
 	(; 𝛺ₘₐₓ,𝛺ᵣₑₛ, 𝛥ₘₐₓ,𝛥ᵣₑₛ) = get_hw_data(hw)
-	𝛥 = 𝛥ᵣₑₛ #-𝛥ₘₐₓ/2
-	scatter( 𝛺 -> evf_Ω(𝛺;𝛥)|>ℜ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
+	𝛥 = (1//0)/μs # 𝛥ᵣₑₛ #-𝛥ₘₐₓ/2
+	scatter( 𝛺 -> evf_Ω(𝛺;𝛥,ϕ,R,ψ,ε,hw)|>ℜ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
 			xaxis="𝛺")
-	scatter!(𝛺 -> evf_Ω(𝛺;𝛥)|>ℑ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
+	scatter!(𝛺 -> evf_Ω(𝛺;𝛥,ϕ,R,ψ,ε,hw)|>ℑ , -𝛺ₘₐₓ: 7𝛺ᵣₑₛ :+𝛺ₘₐₓ
 			; label="",
 			markersize=0.5, markerstrokewidth=0,
 			xaxis="𝛺")
