@@ -1,6 +1,6 @@
 ########################################################################
 #                                                                      #
-# DOT_RydSim/src/HW_Descriptions.mod.jl                                    #
+# DOT_RydSim/src/HW_Descriptions.mod.jl                                #
 #                                                                      #
 # (c) Dirk Oliver Theis 2023                                           #
 #                                                                      #

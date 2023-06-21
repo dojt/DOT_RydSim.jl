@@ -6,10 +6,13 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.1.24**
+
+* `schröd!()` now has 𝑡₀ optional keyword arg
+
 ####  **v0.1.23**
 
 * More detailed error checks in pulse constructor
-
 
 ####  **v0.1.22**
 
@@ -22,7 +25,6 @@ Time goes up!
 ####  **v0.1.20**
 
 * Fixed bug w/ `rationalize( x::Rational )`
-
 
 ####  **v0.1.19**
 
