@@ -54,7 +54,7 @@ Quantum simulation of (small!!) arrays of Rydberg atoms.
 
 # Exports
 
-  * Function [schröd!](@ref)
+  * Function [`schröd!`](@ref)`()`
 
   * Abstract type [`Pulse`](@ref), with sub-types
 

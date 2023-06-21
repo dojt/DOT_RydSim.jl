@@ -186,6 +186,7 @@ returned value of an italic-type function must be unitful.
 * `R ::Hermitian{ℂ,𝕄_t}` — Rydberg interaction term for all atoms.
 
 #### Optional keyword arguments
+* `𝑡₀` — start-time of evolution, in μs.
 * `ε ::ℝ` — (`\varepsilon`) Simulation accuracy; determines size of time steps.
 """
 function schröd!(ψ  ::Vector{ℂ},
@@ -194,19 +195,21 @@ function schröd!(ψ  ::Vector{ℂ},
                  Ω  ::P₁,
                  Δ  ::P₂,
                  R  ::Hermitian{ℂ,𝕄_t},
-                 ε  ::ℝ                   = ℝ(1e-3) ) ::Nothing   where{ℝ,ℂ,𝕄_t, P₁<:Pulse, P₂<:Pulse}
+                 𝑡₀ ::μs_t{ℝ}             = ℝ(0)μs,
+                 ε  ::ℝ                   = ℝ(1//1000) ) ::Nothing   where{ℝ,ℂ,𝕄_t, P₁<:Pulse, P₂<:Pulse}
 
     @assert ε > 0   "ε ≤ 0"
+    @assert ℝ(0)μs ≤ 𝑡₀ ≤ 𝑇
 
     A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
     𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
     N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
     X    = X₁(A;γ=phase(Ω))               ; @assert size(X) == size(N)  "Crazy bug #2"
 
-    WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)   # workspace for `timestep!()`
+    WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)  # workspace for `timestep!()`
 
 
-    𝑡 ::μs_t{ℝ} = 0μs
+    𝑡 ::μs_t{ℝ} = 𝑡₀
 
     while 𝑡  <  𝑇 - 1e-50μs
 
