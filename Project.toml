@@ -1,11 +1,10 @@
 name = "DOT_RydSim"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
 authors = ["dojt <dotheis.work@gmail.com>"]
-version = "0.1.24"
+version = "0.1.25"
 
 [deps]
 DOT_NiceMath = "3e56a413-cb61-4004-9b36-fbc90ffc4c6e"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
