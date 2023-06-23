@@ -395,12 +395,12 @@ function test__secrets(Opts::Symbol...)
                     Schrödinger.timestep!(ψ, Δt⋅μs
                                           ;
                                           𝜔=ω/μs, 𝛿=δ/μs,
-                                          X,N,R)
-                    @test ψ ≈ expi(-Δt⋅(ω⋅X - δ⋅N + R))⋅ψ₀
+                                          X_2=X/2,N,R)
+                    @test ψ ≈ expi(-Δt⋅(ω⋅X/2 - δ⋅N + R))⋅ψ₀
                     @test_call Schrödinger.timestep!(ψ, Δt⋅μs
                                                      ;
                                                      𝜔=ω/μs, 𝛿=δ/μs,
-                                                     X,N,R)
+                                                     X_2=X/2,N,R)
                 end
             end
         end #^ tstset "timestep!()"

@@ -64,8 +64,6 @@ using LinearAlgebra: Hermitian, I as Id,
 using Unitful
 using Unitful: μs
 
-using Logging
-
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.1. X,Z matrices
 #
 
@@ -130,7 +128,7 @@ function  timestep!(ψ    ::Vector{ℂ},
                     𝛥𝑡   ::μs_t{ℝ}
                     ;
                     𝜔    ::Rad_per_μs_t{ℝ},
-                    X    ::Hermitian{ℂ,𝕄_t},
+                    X_2  ::Hermitian{ℂ,𝕄_t},
                     𝛿    ::Rad_per_μs_t{ℝ},
                     N    ::Hermitian{ℂ,𝕄_t},
                     R    ::Hermitian{ℂ,𝕄_t},
@@ -140,8 +138,8 @@ function  timestep!(ψ    ::Vector{ℂ},
         δΔt ::ℝ              = ustrip(NoUnits, 𝛿⋅𝛥𝑡),
         Δt  ::ℝ              = ustrip(μs, 𝛥𝑡)
 
-        # A =          ωΔt⋅X   -δΔt⋅N  +Δt⋅R
-        WS_A .= X
+        # A =          ωΔt⋅X/2   -δΔt⋅N  +Δt⋅R
+        WS_A .= X_2
         axpby!(-δΔt,N, ωΔt,WS_A.data)    # A = -δΔt⋅N + ωΔt⋅A
         axpy!(Δt,R        ,WS_A.data)    # A = Δt⋅R + A
 
@@ -156,7 +154,7 @@ Function `schröd!(ψ  ::Vector{ℂ},  𝑇 ::μs_t{ℝ} ; ...)   where{ℝ,ℂ,
 
 Simulates time evolution under time-dependent Hamiltonian
 ```math
-    H(t)/\hbar = \omega(t) Xᵧ - \delta(t) N + R
+    H(t)/\hbar = \omega(t) Xᵧ/2 - \delta(t) N + R
 ```
 
 where `Xᵧ` is defined as |1⟩⟨2|⋅γ + |2⟩⟨1|⋅γ̄.  The phase, γ, is not time-dependent.
@@ -201,10 +199,10 @@ function schröd!(ψ  ::Vector{ℂ},
     @assert ε > 0   "ε ≤ 0"
     @assert ℝ(0)μs ≤ 𝑡₀ ≤ 𝑇
 
-    A    = log_of_pow2( length(ψ) )       ; @assert A ≥ 1               "Need at least one atom, i.e., length ψ ≥ 2."
-    𝟐ᴬ   = length(ψ)                      ; @assert 2^A == 𝟐ᴬ           "Crazy bug #1"
-    N    = N₁(A,ℂ)                        ; @assert size(N) == size(R)  "Sizes of `ψ` and `R` don't match."
-    X    = X₁(A;γ=phase(Ω))               ; @assert size(X) == size(N)  "Crazy bug #2"
+    A    = log_of_pow2( length(ψ) )      ; @assert A ≥ 1                "Need at least one atom, i.e., length ψ ≥ 2."
+    𝟐ᴬ   = length(ψ)                     ; @assert 2^A == 𝟐ᴬ            "Crazy bug #1"
+    N    = N₁(A,ℂ)                       ; @assert size(N) == size(R)   "Sizes of `ψ` and `R` don't match."
+    X_2  = X₁(A;γ=phase(Ω)) / 2          ; @assert size(X_2) == size(N) "Crazy bug #2"
 
     WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)  # workspace for `timestep!()`
 
@@ -242,8 +240,8 @@ function schröd!(ψ  ::Vector{ℂ},
         end
 
         timestep!(ψ, 𝛥𝑡 ; 𝜔=Ω_𝜇, 𝛿=Δ_𝜇,
-                          X, N, R,
-                          WS_A)
+                  X_2, N, R,
+                  WS_A)
 
         𝑡 += 𝛥𝑡
 
