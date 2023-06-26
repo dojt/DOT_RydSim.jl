@@ -64,7 +64,7 @@ Quantum simulation of (small!!) arrays of Rydberg atoms.
 
   * Functions for using Pulses: [`phase`](@ref), [`𝑎𝑣𝑔`](@ref), [`𝑠𝑡𝑒𝑝`](@ref), [`plotpulse`](@ref)
 
-  * Helper function [`δround`](@ref)
+  * Helper function [`δround`](@ref) and friends, incl. [`is_δrounded`](@ref)`()`
 
 # Sub-modules
 
@@ -81,7 +81,7 @@ module DOT_RydSim
 
 export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
-export δround, δround_down, δround_up
+export δround, δround_down, δround_up,  is_δrounded
 export Pulse__Ω_BangBang, Pulse__Δ_BangBang
 
 
@@ -165,11 +165,13 @@ rationalize( ::Type{I}, x ::Rational{I} ) where{I<:Integer}    = x
 @doc raw"""
 Functions
 ```julia
-     δround(x ::         𝕂 ; δ ::         ℚ     ) ::         ℚ
-     δround(𝑥 ::Quantity{𝕂 ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+     δround(     x ::         𝕂      ; δ ::         ℚ     ) ::         ℚ
+     δround(     𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+     δround_down(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+     δround_up(  𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
 ```
 
-Rounds `x` to the closest multiple of `δ`.
+Rounds `x` (`𝑥`, resp.) to a multiple of `δ` (`𝛿`, resp.).
 """
 function δround( x ::𝕂₁
                  ;
@@ -181,7 +183,7 @@ end
 
 function δround( 𝑥 ::Quantity{𝕂,T₁,F₁}
                  ;
-                 𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
+                 𝛿 ::Quantity{Rational{ℤ},T₂,F₂}   ) ::
                                          Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
 
     𝛿 ⋅ rationalize(ℤ,     floor(𝑥/𝛿 +1//2)    )
@@ -191,14 +193,14 @@ end
 @doc raw"""
 Functions
 ```julia
-     δround_down(𝑥 ::Quantity{𝕂 ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+     δround_down(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
 ```
 
-Rounds `x` down to the closest multiple of `δ`.
+Rounds `𝑥` down to the closest multiple of `𝛿`.
 """
 function δround_down( 𝑥 ::Quantity{𝕂,T₁,F₁}
                      ;
-                     𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
+                     𝛿 ::Quantity{Rational{ℤ},T₂,F₂}   ) ::
                                          Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
 
     𝛿 ⋅ rationalize(ℤ,     floor(𝑥/𝛿)          )
@@ -207,19 +209,34 @@ end
 @doc raw"""
 Functions
 ```julia
-     δround_up(𝑥 ::Quantity{𝕂 ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+     δround_up(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
 ```
 
-Rounds `x` up to the closest multiple of `δ`.
+Rounds `𝑥` up to the closest multiple of `𝛿`.
 """
 function δround_up( 𝑥 ::Quantity{𝕂,T₁,F₁}
                     ;
-                    𝛿 ::Quantity{Rational{ℤ} ,T₂,F₂}   ) ::
+                    𝛿 ::Quantity{Rational{ℤ},T₂,F₂}   ) ::
                                          Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
 
     𝛿 ⋅ rationalize(ℤ,     ceil(𝑥/𝛿)           )
 end
 
+
+@doc raw"""
+Functions
+```julia
+    is_δrounded(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Bool
+```
+
+Returns `true` iff `𝑥` is an integer multiple of `𝛿`.
+"""
+function is_δrounded( 𝑥 ::Quantity{Rational{ℤ},T,F₁}
+                      ;
+                      𝛿 ::Quantity{Rational{ℤ},T,F₂} ) :: Bool      where{ℤ, T, F₁,F₂}
+    @assert 𝛿 ≠ 0 "Nice try."
+    return isinteger( 𝑥/δ )
+end
 
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3. Pulse constructors
