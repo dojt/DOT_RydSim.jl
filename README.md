@@ -6,10 +6,14 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.1.27**
+
+* Fixed bug in `is_δrounded()` -- ARGH!!!
+
+
 ####  **v0.1.26**
 
 * Added exported fn `is_δrounded()`
-
 
 ####  **v0.1.25**
 

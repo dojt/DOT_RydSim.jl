@@ -460,6 +460,8 @@ import .Test__Schrödinger
 
 
 
+using JSON # Only for ignoring by JET
+
 @testset verbose=true "Testing DOT_RydSim.jl" begin
     test__units()
     test__pulses()
@@ -468,6 +470,13 @@ import .Test__Schrödinger
     Test__Schrödinger.test__secrets(:Big)
     Test__Schrödinger.test__schröd!()
     Test__Schrödinger.test__schröd!(:Big)
+
+    #
+    # Basic JET-based package test:
+
+#   Stupid shit doesn't work.  Why can't this moronic millennials declare variables?!
+#   test_package(DOT_RydSim, ignored_modules=(AnyFrameModule(JSON.Parser),) )
+
 end
 
 #  @testset "A broken test:" begin

@@ -235,7 +235,7 @@ function is_δrounded( 𝑥 ::Quantity{Rational{ℤ},T,F₁}
                       ;
                       𝛿 ::Quantity{Rational{ℤ},T,F₂} ) :: Bool      where{ℤ, T, F₁,F₂}
     @assert 𝛿 ≠ 0 "Nice try."
-    return isinteger( 𝑥/δ )
+    return isinteger( 𝑥/𝛿 )
 end
 
 # ***************************************************************************************************************************
