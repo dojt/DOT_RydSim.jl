@@ -115,47 +115,47 @@ function fileread_HW_Descr(::Type{HW_AWS_QuEra}
     ℚ       = Rational{ℤ}
     rat(x)  = rationalize(ℤ,x)
 
-	j       = JSON.parse( read(filename,String) )
-	la_area = j["lattice"]["area"]
-	la_geo  = j["lattice"]["geometry"]
-	R       = j["rydberg"]
-	Rg      = R["rydbergGlobal"]
+    j       = JSON.parse( read(filename,String) )
+    la_area = j["lattice"]["area"]
+    la_geo  = j["lattice"]["geometry"]
+    R       = j["rydberg"]
+    Rg      = R["rydbergGlobal"]
 
-	lattice = Lattice_Descr(
-		width         = u"μm"(  rat( la_area["width"]  )m   ),
-		height        = u"μm"(  rat( la_area["height"] )m   ),
-		radialΔₘᵢₙ    = u"μm"(  rat( la_geo["spacingRadialMin"]     )m   ),
-		verticalΔₘᵢₙ  = u"μm"(  rat( la_geo["spacingVerticalMin"]   )m   ),
-		posᵣₑₛ        = u"μm"(  rat( la_geo["positionResolution"]   )m   ),
-		numsitesₘₐₓ   = la_geo["numberSitesMax"]
-	)
+    lattice = Lattice_Descr(
+	width         = u"μm"(  rat( la_area["width"]  )m   ),
+	height        = u"μm"(  rat( la_area["height"] )m   ),
+	radialΔₘᵢₙ    = u"μm"(  rat( la_geo["spacingRadialMin"]     )m   ),
+	verticalΔₘᵢₙ  = u"μm"(  rat( la_geo["spacingVerticalMin"]   )m   ),
+	posᵣₑₛ        = u"μm"(  rat( la_geo["positionResolution"]   )m   ),
+	numsitesₘₐₓ   = la_geo["numberSitesMax"]
+    )
 
     return 	HW_Descr{ℚ}(
         ;
-		lattice,
-		𝐶₆             = u"μm^6/μs"( R["c6Coefficient"]m^6/s ),
+	lattice,
+	𝐶₆             = u"μm^6/μs"( R["c6Coefficient"]m^6/s ),
 
-		𝛺ₘₐₓ           = u"μs^(-1)"(       rat( Rg["rabiFrequencyRange"][2]    )/s   )::Rad_per_μs_t{ℚ},
-		𝛺ᵣₑₛ           = u"μs^(-1)"(       rat( Rg["rabiFrequencyResolution"]  )/s   )::Rad_per_μs_t{ℚ},
+	𝛺ₘₐₓ           = u"μs^(-1)"(       rat( Rg["rabiFrequencyRange"][2]    )/s   )::Rad_per_μs_t{ℚ},
+	𝛺ᵣₑₛ           = u"μs^(-1)"(       rat( Rg["rabiFrequencyResolution"]  )/s   )::Rad_per_μs_t{ℚ},
         𝛺_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   = u"μs^(-2)"( rat( Rg["rabiFrequencySlewRateMax"] )/s^2 )      ::Radperμs_per_μs_t{ℚ},
         𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 = (
             Ω_downslew_factor ⋅ u"μs^(-2)"( rat( Rg["rabiFrequencySlewRateMax"] )/s^2 )
         )::Radperμs_per_μs_t{ℚ},
 
-		𝛥ₘₐₓ           = u"μs^(-1)"(       rat( Rg["detuningRange"][2]    )/s   )     ::Rad_per_μs_t{ℚ},
-		𝛥ᵣₑₛ           = u"μs^(-1)"(       rat( Rg["detuningResolution"]  )/s   )     ::Rad_per_μs_t{ℚ},
+	𝛥ₘₐₓ           = u"μs^(-1)"(       rat( Rg["detuningRange"][2]    )/s   )     ::Rad_per_μs_t{ℚ},
+	𝛥ᵣₑₛ           = u"μs^(-1)"(       rat( Rg["detuningResolution"]  )/s   )     ::Rad_per_μs_t{ℚ},
         𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   = u"μs^(-2)"( rat( Rg["detuningSlewRateMax"] )/s^2 )           ::Radperμs_per_μs_t{ℚ},
         𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 = (
             Δ_downslew_factor ⋅ u"μs^(-2)"( rat( Rg["detuningSlewRateMax"] )/s^2 )
         )::Radperμs_per_μs_t{ℚ},
 
-		φₘₐₓ           = rat( Rg["phaseRange"][2]   )                                 ::ℚ,
-		φᵣₑₛ           = rat( Rg["phaseResolution"] )                                 ::ℚ,
+	φₘₐₓ           = rat( Rg["phaseRange"][2]   )                                 ::ℚ,
+	φᵣₑₛ           = rat( Rg["phaseResolution"] )                                 ::ℚ,
 
-		𝑡ₘₐₓ           = u"μs"( rat( Rg["timeMax"]        )s )                        ::μs_t{ℚ},
-		𝑡ᵣₑₛ           = u"μs"( rat( Rg["timeResolution"] )s )                        ::μs_t{ℚ},
-		𝛥𝑡ₘᵢₙ          = u"μs"( rat( Rg["timeDeltaMin"]   )s )                        ::μs_t{ℚ}
-	)
+	𝑡ₘₐₓ           = u"μs"( rat( Rg["timeMax"]        )s )                        ::μs_t{ℚ},
+	𝑡ᵣₑₛ           = u"μs"( rat( Rg["timeResolution"] )s )                        ::μs_t{ℚ},
+	𝛥𝑡ₘᵢₙ          = u"μs"( rat( Rg["timeDeltaMin"]   )s )                        ::μs_t{ℚ}
+    )
 end #^ input_HW_Descr()
 
 # ***************************************************************************************************************************

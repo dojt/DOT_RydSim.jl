@@ -474,7 +474,7 @@ using JSON # Only for ignoring by JET
     #
     # Basic JET-based package test:
 
-#   Stupid shit doesn't work.  Why can't this moronic millennials declare variables?!
+#   Stupid shit doesn't work.  Why can't these moronic millennials declare variables?!
 #   test_package(DOT_RydSim, ignored_modules=(AnyFrameModule(JSON.Parser),) )
 
 end
