@@ -17,7 +17,7 @@ Module `HW_Descriptions`
 Exports:
   * Type `HW_Descr{ℚ}`
   * Function
-    `default_HW_Descr(; ℤ=Int128) :: HW_Descr{Rational{ℤ}}`
+    `default_HW_Descr(options::Symbol...; ℤ=Int128) :: HW_Descr{Rational{ℤ}}`
   * Function
     `fileread_HW_Descr( `*FileType*` ; filename ::String, ℤ=Int128) ::HW_Descr{Rational{ℤ}}`
 
@@ -32,6 +32,10 @@ keyword arguments:
   * `Ω_downslew_factor`
   * `Δ_downslew_factor`
 both of type rational.
+
+Admissible `options` for `default_HW_Descr()` are, currently:
+  * none      — read from file "hw_default.json", which is taken from AWS/QuERA.
+  * `:hires`  — read from file "hw_hires.json" which is default with 𝛺ᵣₑₛ, 𝛥ᵣₑₛ divided by 1000
 
 """
 module HW_Descriptions
@@ -71,9 +75,9 @@ Holds the relevant data of the Rydberg atom array quantum device.
 """
 @kwdef struct HW_Descr{ℚ}
 
-	lattice        ::Lattice_Descr
+    lattice        ::Lattice_Descr
 
-	𝐶₆             ::Length⁶_per_Time
+    𝐶₆             ::Length⁶_per_Time
 
     𝛺ₘₐₓ           ::Rad_per_μs_t{ℚ}
     𝛺ᵣₑₛ           ::Rad_per_μs_t{ℚ}
@@ -85,7 +89,7 @@ Holds the relevant data of the Rydberg atom array quantum device.
     𝛥_𝑚𝑎𝑥_𝑢𝑝𝑠𝑙𝑒𝑤   ::Radperμs_per_μs_t{ℚ}
     𝛥_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 ::Radperμs_per_μs_t{ℚ}
 
-	φₘₐₓ           ::ℚ
+    φₘₐₓ           ::ℚ
     φᵣₑₛ           ::ℚ                     # "\varphi"
 
     𝑡ₘₐₓ           ::μs_t{ℚ}
@@ -161,12 +165,25 @@ end #^ input_HW_Descr()
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 3. Default
 
-function default_HW_Descr(;
+function default_HW_Descr(O :: Symbol...    ;
                           ℤ                 ::Type{<:Integer} = Int128,
                           Ω_downslew_factor ::Rational        = 3//1,
                           Δ_downslew_factor ::Rational        = 1//3)
+
+    ALL_O = Set{Symbol}([:hires])
+    O ⊆ ALL_O || throw(Argument("Unrecognized options: $(setdiff(O,ALL_O))"))
+
+    filename = pkgdir(@__MODULE__,
+                      "Resources",
+                      if :hires ∈ O
+                          "hw_hires.json"
+                      else
+                          "hw_default.json"
+                      end
+                      )
+
     fileread_HW_Descr(HW_AWS_QuEra ;
-                      filename=pkgdir(@__MODULE__,"Resources","hw_default.json"),
+                      filename,
                       ℤ,
                       Ω_downslew_factor, Δ_downslew_factor)
 end #^ default_HW_Descr()

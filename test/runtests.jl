@@ -188,6 +188,11 @@ function test__pulses(Opts::Symbol...)
             # @test_call default_HW_Descr(;ℤ)
             hw = default_HW_Descr(;ℤ)
             @test hw.𝑡ₘₐₓ isa DOT_RydSim.μs_t{ℚ}
+            let hw_hr = default_HW_Descr(:hires ; ℤ)
+                @test hw_hr.𝛺ᵣₑₛ           == hw.𝛺ᵣₑₛ/1000
+                @test hw_hr.𝛥ᵣₑₛ           == hw.𝛥ᵣₑₛ/1000
+                @test hw_hr.𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤 == hw.𝛺_𝑚𝑎𝑥_𝑑𝑜𝑤𝑛𝑠𝑙𝑒𝑤
+            end
         end
         𝑇 = hw.𝑡ₘₐₓ
 

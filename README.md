@@ -6,10 +6,15 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.1.28**
+
+* Added options to fn `HW_Descriptions.default_HW_Descr()`
+* ... currently the only one: `:hires`, which loads 1/1000 resolution of Ω, Δ from new file "Resources/hw_hires.json"
+
+
 ####  **v0.1.27**
 
 * Fixed bug in `is_δrounded()` -- ARGH!!!
-
 
 ####  **v0.1.26**
 
