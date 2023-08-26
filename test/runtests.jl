@@ -451,7 +451,7 @@ function test__schröd!(Opts::Symbol...)
                     (Ω=Ω,Δ,𝑇)
                 end
 
-                @test      schröd!(ψ,𝑇 ; Ω, Δ, R) === nothing       skip=true
+                # @test      schröd!(ψ,𝑇 ; Ω, Δ, R) === nothing       skip=true
                 @test_call schröd!(ψ,𝑇 ; Ω, Δ, R)
             end
         end #^ testset "schröd!()"

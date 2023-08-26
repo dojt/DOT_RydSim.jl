@@ -171,7 +171,7 @@ function default_HW_Descr(O :: Symbol...    ;
                           Δ_downslew_factor ::Rational        = 1//3)
 
     ALL_O = Set{Symbol}([:hires])
-    O ⊆ ALL_O || throw(Argument("Unrecognized options: $(setdiff(O,ALL_O))"))
+    O ⊆ ALL_O || throw(ArgumentError("Unrecognized options: $(setdiff(O,ALL_O))"))
 
     filename = pkgdir(@__MODULE__,
                       "Resources",
