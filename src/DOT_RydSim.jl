@@ -81,7 +81,7 @@ module DOT_RydSim
 
 export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
-export δround, δround_down, δround_up,  is_δrounded
+export δround, δround_down, δround_up, δround_to0,  is_δrounded
 export Pulse__Ω_BangBang, Pulse__Δ_BangBang
 
 
@@ -196,11 +196,11 @@ Functions
      δround_down(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
 ```
 
-Rounds `𝑥` down to the closest multiple of `𝛿`.
+Rounds `𝑥` down ("floor") to the closest multiple of `𝛿`.
 """
 function δround_down( 𝑥 ::Quantity{𝕂,T₁,F₁}
-                     ;
-                     𝛿 ::Quantity{Rational{ℤ},T₂,F₂}   ) ::
+                      ;
+                      𝛿 ::Quantity{Rational{ℤ},T₂,F₂}   ) ::
                                          Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
 
     𝛿 ⋅ rationalize(ℤ,     floor(𝑥/𝛿)          )
@@ -209,10 +209,26 @@ end
 @doc raw"""
 Functions
 ```julia
+     δround_down(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
+```
+
+Rounds `𝑥` towards zero ("trunc") to the closest multiple of `𝛿`.
+"""
+function δround_to0( 𝑥 ::Quantity{𝕂,T₁,F₁}
+                     ;
+                     𝛿 ::Quantity{Rational{ℤ},T₂,F₂}   ) ::
+                                         Quantity{Rational{ℤ},T₂,F₂}    where{𝕂,T₁,F₁, ℤ,T₂,F₂}
+
+    𝛿 ⋅ rationalize(ℤ,     trunc(𝑥/𝛿)          )
+end
+
+@doc raw"""
+Functions
+```julia
      δround_up(𝑥 ::Quantity{𝕂,...} ; 𝛿 ::Quantity{ℚ,...}) ::Quantity{ℚ,...}
 ```
 
-Rounds `𝑥` up to the closest multiple of `𝛿`.
+Rounds `𝑥` up ("ceil") to the closest multiple of `𝛿`.
 """
 function δround_up( 𝑥 ::Quantity{𝕂,T₁,F₁}
                     ;

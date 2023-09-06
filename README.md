@@ -6,6 +6,11 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.2.0**
+
+* Added function `δround_to0()`
+
+
 ####  **v0.1.29**
 
 * Fixed bug in `HW_Descriptions.default_HW_Descr` options handling

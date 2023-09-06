@@ -145,7 +145,7 @@ function test__pulses(Opts::Symbol...)
 
     @testset verbose=true """Test pulses $(:Big∈Opts ? "(w/ BigFloat)" : "")""" begin
         @testset verbose=true "Helpers" begin
-            @testset "δround{,_up,_down}()" begin
+            @testset "δround{,_up,_down,_to0}()" begin
 
                 @test_call δround(0.123;δ=1//31)
                 @test_call δround(0.123μs;𝛿=(1//31)μs)
@@ -170,6 +170,17 @@ function test__pulses(Opts::Symbol...)
                     𝑥 = rand(-3:+3)⋅𝛿
                     𝑥̃ = 𝑥 + rand()⋅(1-1e-5)⋅𝛿
                     @test δround_down(𝑥̃;𝛿) == 𝑥
+                end
+
+                @test_call δround_down(0.123μs;𝛿=(1//31)μs)
+                @test_call δround_down((123//100)μs;𝛿=(1//31)μs)
+                for i = 1:100
+                    𝛿 = ℚ(  rationalize(Int16,abs(randn()))  )⋅u"kg*100m/s"
+                    𝑥 = rand(-3:+3)⋅𝛿
+                    𝑥̃ = ( 𝑥>0u"kg*100m/s" ?
+                              𝑥 + rand()⋅(1-1e-5)⋅𝛿
+                            : 𝑥 - rand()⋅(1-1e-5)⋅𝛿 )
+                    @test δround_to0(𝑥̃;𝛿) == 𝑥
                 end
 
                 @test_call δround_up(0.123μs;𝛿=(1//31)μs)
