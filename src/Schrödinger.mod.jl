@@ -237,17 +237,13 @@ function schröd!(ψ  ::Vector{ℂ},
 
         𝑠Ω > 0μs ||
             throw(Ctrl_Exception("Time-step at 𝑡=$(BigFloat(𝑡)) for Ω is non-positive: \
-                                $(BigFloat(𝑠Ω)) ≤ 0μs"))
+                                  $(BigFloat(𝑠Ω)) ≤ 0μs"))
         𝑠Δ > 0μs ||
             throw(Ctrl_Exception("Time-step at 𝑡=$(BigFloat(𝑡)) for Δ is non-positive: \
-                                $(BigFloat(𝑠Δ)) ≤ 0μs"))
+                                  $(BigFloat(𝑠Δ)) ≤ 0μs"))
         Ω_𝜇 ≥ 0/μs ||
             throw(Ctrl_Exception("At time 𝑡=$(BigFloat(𝑡)) Ω is negative: \
-                                $(BigFloat(Ω_𝜇)) < 0/μs"))
-        if abs(Δ_𝜇) > 1e-6/μs && Ω_𝜇 < 1e-10/μs
-            throw(Ctrl_Exception("RWA break-down: \
-                                Δ is non-zero, but Ω is very small: \
-                                𝑡=$(BigFloat(𝑡)) Δ=$(BigFloat(Δ_𝜇)) Ω=$(BigFloat(Ω_𝜇))"))
+                                  $(BigFloat(Ω_𝜇)) < 0/μs"))
         end
 
         timestep!(ψ, 𝛥𝑡 ; 𝜔=Ω_𝜇, 𝛿=Δ_𝜇,

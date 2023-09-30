@@ -6,10 +6,14 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.3.1**
+
+* Removed 💩
+
+
 ####  **v0.3.0**
 
 * Added functions`𝔛()` and `𝔑()` (for X- and N- operators)
-
 
 ####  **v0.2.0**
 
