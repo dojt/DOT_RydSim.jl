@@ -244,7 +244,6 @@ function schröd!(ψ  ::Vector{ℂ},
         Ω_𝜇 ≥ 0/μs ||
             throw(Ctrl_Exception("At time 𝑡=$(BigFloat(𝑡)) Ω is negative: \
                                   $(BigFloat(Ω_𝜇)) < 0/μs"))
-        end
 
         timestep!(ψ, 𝛥𝑡 ; 𝜔=Ω_𝜇, 𝛿=Δ_𝜇,
                   X_2, N, R,
