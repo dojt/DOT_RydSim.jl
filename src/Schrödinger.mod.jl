@@ -67,6 +67,18 @@ using Unitful: μs
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.1. X,Z matrices
 #
 
+(
+    𝔑(a::Integer, A ::Integer, ␣::ℂ ) ::Hermitian{ℂ,Matrix{ℂ}}
+) where{ℂ<:Complex} =
+    begin
+        @assert 1 ≤ a ≤ A
+        let 𝙽 = [  ℂ(0)      0
+                   0       +1  ]
+
+            Id(2^(a-1)) ⊗ 𝙽 ⊗ Id(2^(A-a)) |> Hermitian
+        end
+    end
+
 @doc raw"""
 Function `N₁(A ::Integer, ℂ ::Type{<Complex})` — Rydberg |r⟩⟨r| operator for the 1st atom
 
@@ -80,26 +92,25 @@ and |r⟩=|2⟩ — so it ain't exactly no *number* operator.
 ### Returns:
 * 2ᴬ×2ᴬ Hermitian matrix; type `Hermitian{ℂ,Matrix{ℂ}}`
 """
-N₁(A ::Integer, ℂ::Type{<:Complex}) ::Hermitian{ℂ,Matrix{ℂ}} = begin
-    @assert A ≥ 1
-    let 𝙽 = [  ℂ(0)      0
-                0       +1  ]
+N₁(A ::Integer, ℂ::Type{<:Complex})    = 𝔑(1,A,ℂ(1))
 
-        𝙽 ⊗ Id(2^(A-1)) |> Hermitian
-    end
-end
+# ----------
 
 (
-    X₁(A ::Integer ; γ::ℂ)   ::Hermitian{ℂ,Matrix{ℂ}}
-) where{ℂ} =
+    𝔛(a::Integer, A ::Integer, γ::ℂ)   ::Hermitian{ℂ,Matrix{ℂ}}
+) where{ℂ<:Complex} =
     begin
-        @assert A ≥ 1
+        @assert 1 ≤ a ≤ A
         let 𝚇 = [   0     γ
                     γ'    0   ]
 
-            𝚇 ⊗ Id(2^(A-1)) |> Hermitian
+            Id(2^(a-1)) ⊗ 𝚇 ⊗ Id(2^(A-a)) |> Hermitian
         end
     end
+
+(
+    X₁(A ::Integer ; γ::ℂ)   ::Hermitian{ℂ,Matrix{ℂ}}
+) where{ℂ} = 𝔛(1,A,γ)
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.2. Shit
 #

@@ -66,6 +66,13 @@ Quantum simulation of (small!!) arrays of Rydberg atoms.
 
   * Helper function [`δround`](@ref) and friends, incl. [`is_δrounded`](@ref)`()`
 
+  * Helper functions
+     - `(    𝔑(a::Integer, A ::Integer, ␣::ℂ)  ::Hermitian{ℂ,Matrix{ℂ}}    )where{ℂ}`   and
+     - `(    𝔛(a::Integer, A ::Integer, γ::ℂ)  ::Hermitian{ℂ,Matrix{ℂ}}    )where{ℂ}`
+    These functions return the Rabi term operator γ |g⟩⟨r|ₐ + γ̄ |r⟩⟨g|ₐ and dephasing term operator
+    |r⟩⟨r|ₐ for atom `a` of the Rydberg Hamiltonian.  The 3rd argument (complex number) determines
+    the type `ℂ`: its value is ignored in `𝔑`, and gives the frame in `𝔛`.
+
 # Sub-modules
 
 Sub-module names are not exported.
@@ -83,6 +90,8 @@ export schröd!
 export Pulse, phase, 𝑎𝑣𝑔, 𝑠𝑡𝑒𝑝, plotpulse
 export δround, δround_down, δround_up, δround_to0,  is_δrounded
 export Pulse__Ω_BangBang, Pulse__Δ_BangBang
+export 𝔑, 𝔛
+
 
 
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 1.2. Imports
@@ -800,6 +809,7 @@ end
 
 include("Schrödinger.mod.jl")
 import .Schrödinger: schröd!
+import .Schrödinger: 𝔑, 𝔛
 
 # ***************************************************************************************************************************
 # ——————————————————————————————————————————————————————————————————————————————————————————————————— 5. Sub-module `HW_Descriptions`
