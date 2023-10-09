@@ -6,12 +6,16 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.4.1**
+
+* Expanded error reporting for pulses that don't fit.
+
+
 ####  **v0.4.0**
 
 * In sub-module `HW_Descriptions`
   - Breaking API: Removed `:hires` option for HW-loading
   + Added `cheatify_...()` functions
-
 
 ####  **v0.3.1**
 
