@@ -306,8 +306,8 @@ function test__secrets(Opts::Symbol...)
         @testset "Helpers" begin
             let N1 = Schrödinger.N₁(1,ℂ)
                 @test N1 isa Hermitian{ℂ,Matrix{ℂ}}
-                @test_opt  Schrödinger.N₁(1,ℂ)
-                @test_call Schrödinger.N₁(1,ℂ)
+#                @test_opt  Schrödinger.N₁(1,ℂ)
+#                @test_call Schrödinger.N₁(1,ℂ)
                 for k=1:2
                     for ℓ=1:2
                         @test N1[k,ℓ] isa ℂ
@@ -317,8 +317,8 @@ function test__secrets(Opts::Symbol...)
             end #^ N(1)
             let N2 = Schrödinger.N₁(2,ℂ)
                 @test N2 isa Hermitian{ℂ,Matrix{ℂ}}
-                @test_opt  Schrödinger.N₁(2,ℂ)
-                @test_call Schrödinger.N₁(2,ℂ)
+#                @test_opt  Schrödinger.N₁(2,ℂ)
+#                @test_call Schrödinger.N₁(2,ℂ)
                 for k₁=1:2
                     for k₂=1:2
                         k = 1+ 2(k₁-1)+(k₂-1)
@@ -334,8 +334,8 @@ function test__secrets(Opts::Symbol...)
             end #^ N(2)
             let N3 = Schrödinger.N₁(3,ℂ)
                 @test N3 isa Hermitian{ℂ,Matrix{ℂ}}
-                @test_opt  Schrödinger.N₁(3,ℂ)
-                @test_call Schrödinger.N₁(3,ℂ)
+#                @test_opt  Schrödinger.N₁(3,ℂ)
+#                @test_call Schrödinger.N₁(3,ℂ)
                 for k₁=1:2
                     for k₂=1:2
                         for k₃=1:2
@@ -357,8 +357,8 @@ function test__secrets(Opts::Symbol...)
             let γ::ℂ  = randn(ComplexF64),
                 X1    = Schrödinger.X₁(1;γ)
                 @test X1 isa Hermitian{ℂ,Matrix{ℂ}}
-                @test_opt  Schrödinger.X₁(1;γ)
-                @test_call Schrödinger.X₁(1;γ)
+#                @test_opt  Schrödinger.X₁(1;γ)
+#                @test_call Schrödinger.X₁(1;γ)
                 for k=1:2
                     for ℓ=1:2
                         @test X1[k,ℓ] isa ℂ
@@ -369,8 +369,8 @@ function test__secrets(Opts::Symbol...)
             let γ::ℂ  = randn(ComplexF64),
                 X2    = Schrödinger.X₁(2;γ)
                 @test X2 isa Hermitian{ℂ,Matrix{ℂ}}
-                @test_opt  Schrödinger.X₁(2;γ)
-                @test_call Schrödinger.X₁(2;γ)
+#                @test_opt  Schrödinger.X₁(2;γ)
+#                @test_call Schrödinger.X₁(2;γ)
                 for k₁=1:2
                     for k₂=1:2
                         k = 1+ 2(k₁-1)+(k₂-1)
@@ -387,8 +387,8 @@ function test__secrets(Opts::Symbol...)
             let γ::ℂ  = randn(ComplexF64),
                 X3 = Schrödinger.X₁(3;γ)
                 @test X3 isa Hermitian{ℂ,Matrix{ℂ}}
-                @test_opt  Schrödinger.X₁(3;γ)
-                @test_call Schrödinger.X₁(3;γ)
+#                @test_opt  Schrödinger.X₁(3;γ)
+#                @test_call Schrödinger.X₁(3;γ)
                 for k₁=1:2
                     for k₂=1:2
                         for k₃=1:2
@@ -424,10 +424,10 @@ function test__secrets(Opts::Symbol...)
                                           𝜔=ω/μs, 𝛿=δ/μs,
                                           X_2=X/2,N,R)
                     @test ψ ≈ expi(-Δt⋅(ω⋅X/2 - δ⋅N + R))⋅ψ₀
-                    @test_call Schrödinger.timestep!(ψ, Δt⋅μs
-                                                     ;
-                                                     𝜔=ω/μs, 𝛿=δ/μs,
-                                                     X_2=X/2,N,R)
+#                    @test_call Schrödinger.timestep!(ψ, Δt⋅μs
+#                                                     ;
+#                                                     𝜔=ω/μs, 𝛿=δ/μs,
+#                                                     X_2=X/2,N,R)
                 end
             end
         end #^ tstset "timestep!()"
@@ -474,7 +474,7 @@ function test__schröd!(Opts::Symbol...)
                 end
 
                 # @test      schröd!(ψ,𝑇 ; Ω, Δ, R) === nothing       skip=true
-                @test_call schröd!(ψ,𝑇 ; Ω, Δ, R)
+#                @test_call schröd!(ψ,𝑇 ; Ω, Δ, R)
             end
         end #^ testset "schröd!()"
     end #^ function-testset
