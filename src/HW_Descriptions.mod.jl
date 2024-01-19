@@ -148,8 +148,8 @@ function fileread_HW_Descr(::Type{HW_AWS_QuEra}
                            ;
                            filename          ::String,
                            ℤ                 ::Type{<:Integer}   = Int128,
-                           Ω_downslew_factor ::Rational          = 3//1,
-                           Δ_downslew_factor ::Rational          = 1//3)
+                           Ω_downslew_factor ::Rational          = 1//1,
+                           Δ_downslew_factor ::Rational          = 1//1)
 
     ℚ       = Rational{ℤ}
     rat(x)  = rationalize(ℤ,x)
