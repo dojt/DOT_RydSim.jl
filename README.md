@@ -6,10 +6,15 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.4.3**
+
+* Removed JET.jl testing, as it f/ing doesn't work.
+* Fixed error in HW_Description.fileread... default values for parameters.
+
+
 ####  **v0.4.1**
 
 * Expanded error reporting for pulses that don't fit.
-
 
 ####  **v0.4.0**
 
