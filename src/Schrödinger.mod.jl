@@ -223,7 +223,6 @@ function schröd!(ψ  ::Vector{ℂ},
     𝑡 ::μs_t{ℝ} = 𝑡₀
 
     while 𝑡  <  𝑇 - 1e-50μs
-        ;                                                                   _min_log_level[]>Debug || @show norm₂(ψ)
         𝑠Ω                    = 𝑠𝑡𝑒𝑝(Ω, 𝑡 ; ε )
         𝑠Δ                    = 𝑠𝑡𝑒𝑝(Δ, 𝑡 ; ε )
 

@@ -6,10 +6,14 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.4.6**
+
+* Removed printing of norm from Schrödinger module
+
+
 ####  **v0.4.5**
 
 * Fixed shit typo that introduced a type-incompatibility which the compiler of any decent language would have caught.
-
 
 ####  **v0.4.4**
 
