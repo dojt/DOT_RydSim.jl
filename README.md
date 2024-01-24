@@ -6,15 +6,23 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.4.5**
+
+* Fixed shit typo that introduced a type-incompatibility which the compiler of any decent language would have caught.
+
+
 ####  **v0.4.4**
 
 * Version with variant 𝑠𝑡𝑒𝑝() algorithm
-
 
 ####  **v0.4.3**
 
 * Removed JET.jl testing, as it f/ing doesn't work.
 * Fixed error in HW_Description.fileread... default values for parameters.
+
+### **v0.4.2**
+
+* ???
 
 ####  **v0.4.1**
 
