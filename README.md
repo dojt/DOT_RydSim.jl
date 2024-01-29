@@ -6,10 +6,12 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.4.7**
+
+
 ####  **v0.4.6**
 
 * Removed printing of norm from Schrödinger module
-
 
 ####  **v0.4.5**
 
