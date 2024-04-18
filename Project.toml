@@ -1,7 +1,7 @@
 name = "DOT_RydSim"
 uuid = "16c21e78-c204-4711-8e6d-a01104899bbe"
 authors = ["dojt <dotheis.work@gmail.com>"]
-version = "0.5.1"
+version = "0.5.2"
 
 [deps]
 DOT_NiceMath = "3e56a413-cb61-4004-9b36-fbc90ffc4c6e"

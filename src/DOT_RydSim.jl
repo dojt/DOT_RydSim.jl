@@ -537,9 +537,8 @@ function 𝑠𝑡𝑒𝑝(Δ::Pulse__Δ_BangBang{ℚ},                          
 
     (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ) = Δ
 
-#    𝑠𝑡𝑝(𝑟) = √( 4ε / abs(𝑟) )
-
-    𝑠𝑡𝑝(𝑟) =  4ε / abs(𝑟) / μs
+    𝑠𝑡𝑝(𝑟) = √( 4ε / abs(𝑟) )
+#    𝑠𝑡𝑝(𝑟) =  4ε / abs(𝑟) / μs
 
     # β = (2^30+1)//2^30
     if            𝑡 < 0μs      throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) cannot be \
@@ -779,9 +778,8 @@ function 𝑠𝑡𝑒𝑝(Ω::Pulse__Ω_BangBang{ℚ,ℝ},                      
 
     (; 𝑒𝑣, 𝑟ꜛ, 𝑟ꜜ) = Ω
 
-#    𝑠𝑡𝑝(𝑟) = √( 4ε / abs(𝑟) )
-
-    𝑠𝑡𝑝(𝑟) =  4ε / abs(𝑟) / μs
+    𝑠𝑡𝑝(𝑟) = √( 4ε / abs(𝑟) )
+#    𝑠𝑡𝑝(𝑟) =  4ε / abs(𝑟) / μs
 
     # β = (2^30+1)//2^30
     if            𝑡 < 0μs        throw(DomainError(𝑡,"Time 𝑡=$(BigFloat(𝑡)) cannot be \

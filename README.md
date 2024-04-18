@@ -6,7 +6,12 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
-####  **v0.5.0**
+####  **v0.5.2**
+
+* 😮‍💨
+
+
+####  **v0.5.1**
 
 * Q&D-fixed unit mistake
 
