@@ -8,8 +8,11 @@ Time goes up!
 
 ####  **v0.5.0**
 
-* schröd!() now returns num time-steps
+* Q&D-fixed unit mistake
 
+####  **v0.5.0**
+
+* schröd!() now returns num time-steps
 
 ####  **v0.4.8**
 
