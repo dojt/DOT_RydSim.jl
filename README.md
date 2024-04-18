@@ -6,10 +6,14 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
+####  **v0.5.0**
+
+* schröd!() now returns num time-steps
+
+
 ####  **v0.4.8**
 
 * Removed √
-
 
 ####  **v0.4.7**
 
