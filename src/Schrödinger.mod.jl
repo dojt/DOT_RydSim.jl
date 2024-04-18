@@ -186,7 +186,7 @@ returned value of an italic-type function must be unitful.
 2. `𝑇` — end-time of evolution, in μs.
 
 ### Returns
-... nothing.
+* Number of time-steps taken
 
 ### Keyword arguments
 
@@ -207,7 +207,7 @@ function schröd!(ψ  ::Vector{ℂ},
                  Δ  ::P₂,
                  R  ::Hermitian{ℂ,𝕄_t},
                  𝑡₀ ::μs_t{ℝ}             = ℝ(0)μs,
-                 ε  ::ℝ                   = ℝ(1//1000) ) ::Nothing   where{ℝ,ℂ,𝕄_t, P₁<:Pulse, P₂<:Pulse}
+                 ε  ::ℝ                   = ℝ(1//1000) ) ::Int   where{ℝ,ℂ,𝕄_t, P₁<:Pulse, P₂<:Pulse}
 
     @assert ε > 0   "ε ≤ 0"
     @assert ℝ(0)μs ≤ 𝑡₀ ≤ 𝑇
@@ -220,7 +220,8 @@ function schröd!(ψ  ::Vector{ℂ},
     WS_A ::Hermitian{ℂ,𝕄_t} = similar(R)  # workspace for `timestep!()`
 
 
-    𝑡 ::μs_t{ℝ} = 𝑡₀
+    𝑡       ::μs_t{ℝ} = 𝑡₀
+    n_steps ::Int     = 0
 
     while 𝑡  <  𝑇 - 1e-50μs
         𝑠Ω                    = 𝑠𝑡𝑒𝑝(Ω, 𝑡 ; ε )
@@ -249,10 +250,10 @@ function schröd!(ψ  ::Vector{ℂ},
                   X_2, N, R,
                   WS_A)
 
-        𝑡 += 𝛥𝑡
-
+        n_steps += 1
+        𝑡       += 𝛥𝑡
     end #^ while 𝑡
-    nothing
+    return n_steps
 end #^ schröd!()
 
 
