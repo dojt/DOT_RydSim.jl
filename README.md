@@ -6,8 +6,12 @@ Quantum simulation of arrays of Rydberg atoms &amp; related stuff
 Time goes up!
 
 
-####  **v0.4.7**
+####  **v0.4.8**
 
+* Removed √
+
+
+####  **v0.4.7**
 
 ####  **v0.4.6**
 
